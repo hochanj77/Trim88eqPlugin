@@ -38,39 +38,46 @@ const PRESET_CATEGORIES: PresetCategory[] = [
     label: 'VOCALS',
     presets: [
       {
+        // Cut 280Hz mud, boost 3.5kHz presence zone, gentle air shelf
         id: 'vocal-clarity',
         name: 'Vocal Clarity',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 350, -3.0, 1.0), b(3, 'peaking', 3000, 2.0, 0.8), b(4, 'highshelf', 10000, 3.0, 0.7)],
+        bands: [b(1, 'lowcut', 85, 0, 0.7), b(2, 'peaking', 280, -2.5, 1.2), b(3, 'peaking', 3500, 3.0, 0.8), b(4, 'highshelf', 10000, 2.5, 0.7)],
       },
       {
+        // Boost 220Hz body, tame 2.8kHz harshness, gentle HF rolloff
         id: 'vocal-warmth',
         name: 'Vocal Warmth',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 220, 3.0, 0.8), b(3, 'peaking', 2500, 0, 1.0), b(4, 'highshelf', 12000, -2.0, 0.7)],
+        bands: [b(1, 'lowcut', 65, 0, 0.7), b(2, 'peaking', 220, 2.5, 0.7), b(3, 'peaking', 2800, -1.5, 1.0), b(4, 'highshelf', 12000, -1.5, 0.7)],
       },
       {
+        // Scoop 400Hz boxiness, aggressive 4.5kHz presence for mix cut-through
         id: 'vocal-presence',
         name: 'Vocal Presence',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 300, -1.5, 1.0), b(3, 'peaking', 3500, 4.0, 0.6), b(4, 'highshelf', 10000, 1.5, 0.7)],
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 400, -2.0, 1.5), b(3, 'peaking', 4500, 4.5, 0.7), b(4, 'highshelf', 10000, 1.0, 0.7)],
       },
       {
+        // Deep surgical cut at 300Hz mud pocket, compensate with upper-mid clarity
         id: 'de-mud',
         name: 'De-Mud',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 300, -4.0, 1.5), b(3, 'peaking', 5000, 1.0, 0.8), b(4, 'highshelf', 12000, 2.5, 0.7)],
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 300, -5.0, 1.8), b(3, 'peaking', 2500, 1.5, 0.8), b(4, 'highshelf', 8000, 2.0, 0.7)],
       },
       {
+        // Warm proximity boost at 180Hz, smooth 3kHz presence, gentle air
         id: 'broadcast-podcast',
         name: 'Broadcast / Podcast',
-        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 180, 2.0, 0.8), b(3, 'peaking', 3000, 3.0, 0.7), b(4, 'highshelf', 10000, 1.0, 0.7)],
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 180, 1.5, 0.7), b(3, 'peaking', 3000, 2.5, 0.8), b(4, 'highshelf', 10000, 1.5, 0.7)],
       },
       {
+        // Thin out lower-mids, lift 7kHz breathiness, strong air shelf
         id: 'airy-vocals',
         name: 'Airy Vocals',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 800, -2.0, 1.0), b(3, 'peaking', 5000, 1.0, 0.8), b(4, 'highshelf', 10000, 4.5, 0.7)],
+        bands: [b(1, 'lowcut', 120, 0, 0.7), b(2, 'peaking', 400, -3.0, 1.0), b(3, 'peaking', 7000, 2.0, 0.6), b(4, 'highshelf', 10000, 5.0, 0.7)],
       },
       {
+        // Tight notch at 1kHz nasal zone, slight presence compensation
         id: 'nasal-reduction',
         name: 'Nasal Reduction',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 1000, -4.5, 2.5), b(3, 'peaking', 3500, 1.0, 0.8), b(4, 'highshelf', 10000, 0, 0.7)],
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 1000, -5.0, 3.0), b(3, 'peaking', 3500, 1.0, 0.8), b(4, 'highshelf', 10000, 1.0, 0.7)],
       },
     ],
   },
@@ -79,39 +86,46 @@ const PRESET_CATEGORIES: PresetCategory[] = [
     label: 'DRUMS',
     presets: [
       {
+        // Boost 60Hz fundamental, deep cut 350Hz cardboard, 4kHz beater click
         id: 'kick-punch',
         name: 'Kick Punch',
-        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 70, 4.0, 1.0), b(3, 'peaking', 300, -3.5, 1.5), b(4, 'peaking', 3500, 3.5, 1.2)],
+        bands: [b(1, 'lowcut', 28, 0, 0.7), b(2, 'peaking', 60, 4.0, 1.2), b(3, 'peaking', 350, -4.0, 1.5), b(4, 'peaking', 4000, 3.0, 1.0)],
       },
       {
+        // 200Hz body, cut 500Hz box, 3kHz crack/snap
         id: 'snare-crack',
         name: 'Snare Crack',
-        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 200, 2.5, 1.0), b(3, 'peaking', 800, -2.0, 1.5), b(4, 'peaking', 3000, 4.0, 1.0)],
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 200, 2.0, 1.0), b(3, 'peaking', 500, -3.0, 1.5), b(4, 'peaking', 3000, 4.5, 0.8)],
       },
       {
+        // Aggressive HPF, tame 1.5kHz harshness, 8kHz shimmer, 12kHz sparkle
         id: 'hihat-shimmer',
         name: 'Hi-Hat Shimmer',
-        bands: [b(1, 'lowcut', 300, 0, 0.7), b(2, 'peaking', 2000, 0, 1.0), b(3, 'peaking', 8000, 3.0, 0.8), b(4, 'highshelf', 12000, 2.0, 0.7)],
+        bands: [b(1, 'lowcut', 350, 0, 0.7), b(2, 'peaking', 1500, -2.0, 1.0), b(3, 'peaking', 8000, 3.5, 0.7), b(4, 'highshelf', 12000, 2.5, 0.7)],
       },
       {
+        // Low shelf fullness, gentle mid scoop for width, HF shelf for air
         id: 'drum-bus-glue',
         name: 'Drum Bus Glue',
-        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'lowshelf', 80, 2.0, 0.7), b(3, 'peaking', 400, -2.0, 0.6), b(4, 'highshelf', 10000, 2.5, 0.7)],
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'lowshelf', 100, 2.5, 0.7), b(3, 'peaking', 400, -1.5, 0.5), b(4, 'highshelf', 8000, 2.0, 0.7)],
       },
       {
+        // 80Hz fundamental, cut 500Hz ring/resonance, 3.5kHz stick attack
         id: 'toms-thump',
         name: 'Toms Thump',
-        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 90, 3.5, 1.0), b(3, 'peaking', 400, -3.0, 1.5), b(4, 'peaking', 3000, 3.0, 1.0)],
+        bands: [b(1, 'lowcut', 40, 0, 0.7), b(2, 'peaking', 80, 3.5, 1.0), b(3, 'peaking', 500, -4.0, 2.0), b(4, 'peaking', 3500, 2.5, 0.8)],
       },
       {
+        // Heavy HPF for bleed, cut 1kHz harshness, 6kHz definition, 12kHz sparkle
         id: 'overhead-clean',
         name: 'Overhead Clean',
-        bands: [b(1, 'lowcut', 200, 0, 0.7), b(2, 'peaking', 1000, 0, 1.0), b(3, 'peaking', 6000, 2.5, 0.8), b(4, 'highshelf', 12000, 3.0, 0.7)],
+        bands: [b(1, 'lowcut', 250, 0, 0.7), b(2, 'peaking', 1000, -1.5, 1.0), b(3, 'peaking', 6000, 2.0, 0.7), b(4, 'highshelf', 12000, 3.0, 0.7)],
       },
       {
+        // Heavy sub shelf boost, clean out mud, roll off highs for pure sub
         id: '808-sub',
         name: '808 Sub',
-        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'lowshelf', 50, 5.0, 0.8), b(3, 'peaking', 350, -4.0, 0.8), b(4, 'highshelf', 8000, -2.0, 0.7)],
+        bands: [b(1, 'lowcut', 25, 0, 0.7), b(2, 'lowshelf', 55, 5.0, 0.8), b(3, 'peaking', 250, -3.5, 1.0), b(4, 'highshelf', 6000, -3.0, 0.7)],
       },
     ],
   },
@@ -120,34 +134,40 @@ const PRESET_CATEGORIES: PresetCategory[] = [
     label: 'INSTRUMENTS',
     presets: [
       {
+        // Cut 350Hz boxiness, boost 2.5kHz bite/edge, gentle presence shelf
         id: 'electric-guitar-edge',
         name: 'Electric Guitar Edge',
-        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 400, -2.0, 1.0), b(3, 'peaking', 2000, 3.5, 0.8), b(4, 'highshelf', 8000, 1.0, 0.7)],
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 350, -2.5, 1.2), b(3, 'peaking', 2500, 3.5, 0.8), b(4, 'highshelf', 6000, 1.5, 0.7)],
       },
       {
+        // Low shelf body, 3.5kHz hammer clarity, HF brilliance
         id: 'piano-fullness',
         name: 'Piano Fullness',
-        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'lowshelf', 180, 2.0, 0.7), b(3, 'peaking', 4000, 2.0, 0.8), b(4, 'highshelf', 10000, 1.5, 0.7)],
+        bands: [b(1, 'lowcut', 40, 0, 0.7), b(2, 'lowshelf', 150, 2.0, 0.7), b(3, 'peaking', 3500, 1.5, 0.7), b(4, 'highshelf', 8000, 2.0, 0.7)],
       },
       {
+        // Low shelf warmth, tame 2.5kHz edge, roll off HF for smoothness
         id: 'synth-pad-warmth',
         name: 'Synth Pad Warmth',
-        bands: [b(1, 'lowcut', 40, 0, 0.7), b(2, 'lowshelf', 150, 2.5, 0.7), b(3, 'peaking', 2000, -1.0, 0.8), b(4, 'highshelf', 8000, -3.0, 0.7)],
+        bands: [b(1, 'lowcut', 35, 0, 0.7), b(2, 'lowshelf', 150, 3.0, 0.7), b(3, 'peaking', 2500, -2.0, 1.0), b(4, 'highshelf', 8000, -3.5, 0.7)],
       },
       {
+        // Clear mud at 400Hz, aggressive 3kHz presence for mix focus
         id: 'synth-lead-cut-through',
         name: 'Synth Lead Cut-Through',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, -2.5, 1.5), b(3, 'peaking', 3000, 4.0, 0.7), b(4, 'highshelf', 10000, 1.5, 0.7)],
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 400, -3.0, 1.5), b(3, 'peaking', 3000, 4.5, 0.8), b(4, 'highshelf', 8000, 2.0, 0.7)],
       },
       {
+        // Gentle 300Hz body, cut 2.5kHz bow harshness, HF sweetness shelf
         id: 'strings-sweetness',
         name: 'Strings Sweetness',
-        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 250, 1.0, 0.8), b(3, 'peaking', 2000, -2.0, 1.5), b(4, 'highshelf', 10000, 3.0, 0.7)],
+        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 300, 1.5, 0.7), b(3, 'peaking', 2500, -2.5, 1.2), b(4, 'highshelf', 10000, 3.5, 0.7)],
       },
       {
+        // Slight 400Hz body, 2kHz bite for punch, gentle brilliance
         id: 'brass-punch',
         name: 'Brass Punch',
-        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 500, -1.5, 1.0), b(3, 'peaking', 2000, 3.5, 0.8), b(4, 'highshelf', 8000, 1.0, 0.7)],
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 400, 1.0, 0.8), b(3, 'peaking', 2000, 3.5, 1.0), b(4, 'highshelf', 8000, 1.5, 0.7)],
       },
     ],
   },
@@ -156,34 +176,40 @@ const PRESET_CATEGORIES: PresetCategory[] = [
     label: 'GENERAL',
     presets: [
       {
+        // Clean HPF at 80Hz, all else flat
         id: 'low-cut-80',
         name: 'Low Cut (HPF 80)',
         bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
       },
       {
+        // Steeper HPF at 120Hz for live/noisy environments
         id: 'low-cut-120',
         name: 'Low Cut (HPF 120)',
         bands: [b(1, 'lowcut', 120, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
       },
       {
+        // LPF at 12kHz to tame digital harshness
         id: 'high-cut-12k',
         name: 'High Cut (LPF 12k)',
-        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highcut', 12000, 0, 0.7)],
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highcut', 12000, 0, 0.7)],
       },
       {
+        // Classic bandpass: HPF 300Hz + LPF 3.4kHz with mid-range resonance
         id: 'telephone',
         name: 'Telephone',
-        bands: [b(1, 'lowcut', 300, 0, 0.7), b(2, 'peaking', 1000, 0, 1.0), b(3, 'peaking', 2000, 0, 1.0), b(4, 'highcut', 3500, 0, 0.7)],
+        bands: [b(1, 'lowcut', 300, 0, 0.7), b(2, 'peaking', 1000, 2.0, 0.8), b(3, 'peaking', 2000, 3.0, 1.5), b(4, 'highcut', 3400, 0, 0.7)],
       },
       {
+        // Surgical notch at 3.5kHz sibilance zone
         id: 'de-harsh',
         name: 'De-Harsh',
-        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3200, -4.0, 2.0), b(4, 'highshelf', 10000, 0, 0.7)],
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3500, -4.5, 2.5), b(4, 'highshelf', 10000, -1.0, 0.7)],
       },
       {
+        // Unity — zero processing
         id: 'flat-bypass',
         name: 'Flat / Bypass',
-        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
+        bands: [b(1, 'lowcut', 20, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
       },
     ],
   },
