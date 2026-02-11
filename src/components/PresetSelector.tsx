@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, Save, FolderOpen, Database } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion as Motion, AnimatePresence } from 'motion/react';
 import { Band } from '../App';
 
 interface Preset {
@@ -95,7 +95,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
         {isOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -129,7 +129,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
               <div className="p-2 bg-[#050608] flex justify-center">
                 <span className="text-[7px] uppercase tracking-[0.3em] text-[#6784A3]/20">End of Data Stream</span>
               </div>
-            </motion.div>
+            </Motion.div>
           </>
         )}
       </AnimatePresence>

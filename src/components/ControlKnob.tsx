@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion as Motion, AnimatePresence } from 'motion/react';
 
 interface ControlKnobProps {
   label: string;
@@ -10,6 +10,7 @@ interface ControlKnobProps {
   onChange: (value: number) => void;
   color: string;
   step?: number;
+  disabled?: boolean;
 }
 
 export const ControlKnob: React.FC<ControlKnobProps> = ({
@@ -20,7 +21,8 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
   unit,
   onChange,
   color,
-  step = 0.1
+  step = 0.1,
+  disabled = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -32,6 +34,7 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
   const rotation = ((value - min) / (max - min)) * 270 - 135;
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (disabled) return;
     setIsDragging(true);
     startYRef.current = e.clientY;
     startValueRef.current = value;
@@ -84,7 +87,7 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 select-none group">
+    <div className={`flex flex-col items-center gap-4 select-none group transition-opacity duration-500 ${disabled ? 'opacity-20 cursor-not-allowed grayscale' : 'opacity-100'}`}>
       {/* Precision Label */}
       <div className="flex flex-col items-center gap-1">
         <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#6784A3]/60 group-hover:text-[#6784A3] transition-colors duration-300">
@@ -93,9 +96,9 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
       </div>
 
       <div 
-        className="relative size-24 flex items-center justify-center cursor-ns-resize"
+        className={`relative size-24 flex items-center justify-center ${disabled ? 'cursor-not-allowed' : 'cursor-ns-resize'}`}
         onMouseDown={handleMouseDown}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={() => !disabled && setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Progress Display Arcs */}
@@ -109,21 +112,23 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
             strokeLinecap="round"
           />
           {/* Active Progress */}
-          <motion.path
-            d={describeArc(50, 50, 42, -135, rotation)}
-            fill="none"
-            stroke={isDragging ? "#FFB000" : color}
-            strokeWidth="4"
-            strokeLinecap="round"
-            className="drop-shadow-[0_0_10px_rgba(255,176,0,0.3)]"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
+          {!disabled && (
+            <Motion.path
+              d={describeArc(50, 50, 42, -135, rotation)}
+              fill="none"
+              stroke={isDragging ? "#FFB000" : color}
+              strokeWidth="4"
+              strokeLinecap="round"
+              className="drop-shadow-[0_0_10px_rgba(255,176,0,0.3)]"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
         </svg>
 
         {/* Value Tooltip (HUD) - Matches Image */}
         <AnimatePresence>
-          {(isHovered || isDragging) && (
-            <motion.div 
+          {(isHovered || isDragging) && !disabled && (
+            <Motion.div 
               initial={{ opacity: 0, y: -10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.9 }}
@@ -134,7 +139,7 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
               </span>
               {/* Tooltip Arrow */}
               <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#FFB000]" />
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
 
@@ -147,9 +152,9 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
           <div className="absolute inset-0 rounded-full bg-gradient-to-b from-[#2A3036] to-[#111418] border border-white/5" />
           
           {/* Main Knob Body */}
-          <motion.div 
+          <Motion.div 
             className="relative size-[56px] rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden"
-            animate={{ rotate: rotation }}
+            animate={{ rotate: disabled ? -135 : rotation }}
             transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.5 }}
           >
             {/* Brushed Texture Layer */}
@@ -166,8 +171,8 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
             <div className="absolute inset-[6px] rounded-full bg-gradient-to-br from-[#2A3036] to-[#090C0F] border border-white/[0.04]" />
 
             {/* Precision Indicator Notch */}
-            <div className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[3px] h-[10px] rounded-full bg-[#FFB000] shadow-[0_0_12px_#FFB000]" />
-          </motion.div>
+            <div className={`absolute top-[8px] left-1/2 -translate-x-1/2 w-[3px] h-[10px] rounded-full ${disabled ? 'bg-[#6784A3]/20' : 'bg-[#FFB000] shadow-[0_0_12px_#FFB000]'}`} />
+          </Motion.div>
         </div>
       </div>
 
@@ -175,10 +180,10 @@ export const ControlKnob: React.FC<ControlKnobProps> = ({
       <div className="flex flex-col items-center gap-0.5 min-w-[70px]">
         <div className="flex items-baseline gap-1.5">
           <span className="text-[14px] font-mono font-black text-white tracking-tighter">
-            {value > 999 ? (value/1000).toFixed(2) : Math.round(value)}
+            {disabled ? '--' : (value > 999 ? (value/1000).toFixed(2) : Math.round(value))}
           </span>
           <span className="text-[9px] font-black text-[#6784A3] uppercase opacity-60">
-            {value > 999 ? 'k' : ''}{unit}
+            {!disabled && (value > 999 ? 'k' : '')}{unit}
           </span>
         </div>
         <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#FFB000]/20 to-transparent" />

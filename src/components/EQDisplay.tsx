@@ -74,6 +74,12 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       case 'highcut': {
         return -60 * (1 / (1 + Math.pow((f0 * 2) / freq, 4)));
       }
+      case 'brickwalllow': {
+        return freq > f0 ? -200 : 0;
+      }
+      case 'brickwallhigh': {
+        return freq < f0 ? -200 : 0;
+      }
       case 'master': return 0;
       default: return 0;
     }
@@ -200,7 +206,8 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     currentBands.forEach(b => {
       if (!b.enabled || b.type === 'master') return;
       const x = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * width;
-      const y = b.type === 'lowcut' || b.type === 'highcut' ? midY : midY - (b.gain / DB_MAX) * (height / 2);
+      const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
+      const y = isFixedGain ? midY : midY - (b.gain / DB_MAX) * (height / 2);
       const isSelected = b.id === currentSelectedId;
       const isHovered = b.id === currentHoveredId;
 
@@ -250,7 +257,8 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     for (const b of bands) {
       if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
-      const by = (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
+      const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
+      const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
       if (Math.sqrt(Math.pow(x - bx, 2) + Math.pow(y - by, 2)) < 30) {
         onSelectBand(b.id);
         setIsDragging(true);
@@ -266,30 +274,87 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
     const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
     if (isDragging) {
+      const b = bands.find(b => b.id === selectedBandId);
+      const isFixedGain = b?.type === 'lowcut' || b?.type === 'highcut' || b?.type === 'brickwalllow' || b?.type === 'brickwallhigh';
+      
       const freq = Math.max(20, Math.min(20000, 20 * Math.pow(20000 / 20, x / canvas.width)));
-      const gain = Math.max(-18, Math.min(18, ((canvas.height / 2 - y) / (canvas.height / 2)) * DB_MAX));
+      const gain = isFixedGain ? 0 : Math.max(-18, Math.min(18, ((canvas.height / 2 - y) / (canvas.height / 2)) * DB_MAX));
       onUpdateBand(selectedBandId, { frequency: freq, gain });
     }
     let found = null;
     for (const b of bands) {
       if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
-      const by = (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
+      const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
+      const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
       if (Math.sqrt(Math.pow(x - bx, 2) + Math.pow(y - by, 2)) < 25) { found = b.id; break; }
     }
     setHoveredBandId(found);
   };
 
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!hoveredBandId) return;
+    e.preventDefault();
+    const band = bands.find(b => b.id === hoveredBandId);
+    if (!band || band.type === 'master') return;
+    
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    const newQ = Math.max(0.1, Math.min(10, band.q + delta));
+    onUpdateBand(hoveredBandId, { q: newQ });
+  };
+
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
   return (
-    <canvas
-      ref={canvasRef}
-      width={1600}
-      height={600}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={() => setIsDragging(false)}
-      onMouseLeave={() => setIsDragging(false)}
-      className={`w-full h-full cursor-${hoveredBandId ? 'pointer' : isDragging ? 'grabbing' : 'crosshair'}`}
-    />
+    <div className="relative w-full h-full group">
+      <canvas
+        ref={canvasRef}
+        width={1600}
+        height={600}
+        onMouseDown={handleMouseDown}
+        onMouseMove={(e) => {
+          const rect = canvasRef.current?.getBoundingClientRect();
+          if (rect) {
+            setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+          }
+          handleMouseMove(e);
+        }}
+        onMouseUp={() => setIsDragging(false)}
+        onMouseLeave={() => {
+          setIsDragging(false);
+          setHoveredBandId(null);
+        }}
+        onWheel={handleWheel}
+        className={`w-full h-full cursor-${hoveredBandId ? 'pointer' : isDragging ? 'grabbing' : 'crosshair'}`}
+      />
+      
+      {/* Precision Node HUD Tooltip */}
+      {(isDragging || hoveredBandId) && (
+        <div 
+          className="absolute pointer-events-none z-50 px-3 py-1.5 bg-[#FFB000] text-black font-black text-[10px] rounded shadow-xl flex flex-col items-center"
+          style={{ 
+            left: `${mousePos.x}px`, 
+            top: `${mousePos.y - 45}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          {(() => {
+            const b = isDragging ? bands.find(b => b.id === selectedBandId) : bands.find(b => b.id === hoveredBandId);
+            if (!b) return null;
+            return (
+              <>
+                <span className="whitespace-nowrap uppercase tracking-tighter">
+                  {Math.round(b.frequency)}Hz // {b.gain.toFixed(1)}dB
+                </span>
+                <span className="text-[8px] opacity-70 mt-0.5">
+                  BW: {b.q.toFixed(2)}
+                </span>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#FFB000] rotate-45" />
+              </>
+            );
+          })()}
+        </div>
+      )}
+    </div>
   );
 };

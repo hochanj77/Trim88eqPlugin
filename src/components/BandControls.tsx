@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion as Motion } from 'motion/react';
 import { Band, BandType } from '../App';
 import { ControlKnob } from './ControlKnob';
 import { CheckCircle2, Circle, Settings, Activity, Gauge } from 'lucide-react';
@@ -9,11 +10,69 @@ interface BandControlsProps {
 }
 
 const BAND_TYPES: { type: BandType; label: string; icon: React.ReactNode }[] = [
-  { type: 'lowshelf', label: 'LS', icon: <Activity size={10} /> },
-  { type: 'peaking', label: 'PK', icon: <Activity size={10} /> },
-  { type: 'highshelf', label: 'HS', icon: <Activity size={10} /> },
-  { type: 'lowcut', label: 'LC', icon: <Activity size={10} /> },
-  { type: 'highcut', label: 'HC', icon: <Activity size={10} /> },
+  { 
+    type: 'lowcut', 
+    label: 'LC', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 12C2 12 6 12 8 8C10 4 14 2 22 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'lowshelf', 
+    label: 'LS', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 10C6 10 8 10 10 7C12 4 14 4 22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'peaking', 
+    label: 'PK', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 10C6 10 8 10 12 2C16 10 18 10 22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'highshelf', 
+    label: 'HS', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 4C10 4 12 4 14 7C16 10 18 10 22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'highcut', 
+    label: 'HC', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2C10 2 14 4 16 8C18 12 22 12 22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'brickwallhigh', 
+    label: 'BH', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 12V2H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ) 
+  },
+  { 
+    type: 'brickwalllow', 
+    label: 'BL', 
+    icon: (
+      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2H20V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ) 
+  },
 ];
 
 export const BandControls: React.FC<BandControlsProps> = ({ 
@@ -21,6 +80,20 @@ export const BandControls: React.FC<BandControlsProps> = ({
   onUpdate 
 }) => {
   const isMaster = band.type === 'master';
+  const isBrickwall = band.type === 'brickwalllow' || band.type === 'brickwallhigh';
+
+  const getBandName = (band: Band) => {
+    if (band.type === 'master') return 'MASTER';
+    
+    // Fixed names based on the 4-node configuration slots
+    switch (band.id) {
+      case 1: return 'LOW_CUT';
+      case 2: return 'LOW_MID';
+      case 3: return 'HIGH_MID';
+      case 4: return 'HIGH_CUT';
+      default: return band.type.toUpperCase();
+    }
+  };
 
   return (
     <div className="flex flex-col gap-10">
@@ -45,27 +118,29 @@ export const BandControls: React.FC<BandControlsProps> = ({
               </span>
               <div className="w-10 h-[1px] bg-[#6784A3]/20" />
             </div>
-            <span className="text-sm text-white font-mono font-bold tracking-tight">
-              {isMaster ? 'OASIS_MASTER_OUT // GAIN_COMP' : `OASIS_NODE_${band.id.toString().padStart(2, '0')} // TYPE_${band.type.toUpperCase()}`}
+            <span className="text-sm text-white font-mono font-black tracking-[0.1em]">
+              {getBandName(band)}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           {!isMaster && (
-            <div className="flex bg-[#1A2026]/50 p-1 rounded-lg border border-[#2A3036] shadow-inner">
+            <div className="flex bg-[#1A2026]/50 p-1.5 rounded-xl border border-[#2A3036] shadow-inner gap-1">
               {BAND_TYPES.map((bt) => (
                 <button
                   key={bt.type}
                   onClick={() => onUpdate({ type: bt.type })}
-                  className={`flex flex-col items-center justify-center w-12 h-10 rounded-md transition-all ${
+                  className={`flex flex-col items-center justify-center w-14 h-12 rounded-lg transition-all duration-200 ${
                     band.type === bt.type 
                       ? "bg-[#6784A3] text-white shadow-lg shadow-[#6784A3]/20" 
                       : "text-[#6784A3]/40 hover:text-[#6784A3]/80 hover:bg-[#1A2026]"
                   }`}
                 >
-                  <span className="text-[8px] font-black uppercase tracking-tighter mb-0.5">{bt.label}</span>
-                  {bt.icon}
+                  <div className={`mb-1 transition-transform duration-200 ${band.type === bt.type ? 'scale-110' : 'scale-90 opacity-60'}`}>
+                    {bt.icon}
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest leading-none">{bt.label}</span>
                 </button>
               ))}
             </div>
@@ -109,78 +184,53 @@ export const BandControls: React.FC<BandControlsProps> = ({
               unit="dB" 
               color={band.color}
               onChange={(v) => onUpdate({ gain: v })}
+              disabled={isBrickwall}
             />
 
             <ControlKnob 
-              label="Q / Quality" 
+              label="Bandwidth" 
               value={band.q} 
               min={0.1} 
               max={10} 
               unit="" 
               color={band.color}
               onChange={(v) => onUpdate({ q: v })}
+              disabled={isBrickwall}
             />
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex items-center gap-20">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-32 w-6 bg-[#1A2026] rounded-full relative overflow-hidden border border-white/5 shadow-inner">
-                  <motion.div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#5FFF9F] to-[#FFB000]"
-                    style={{ height: `${Math.max(0, ((band.gain + 18) / 36) * 100)}%` }}
-                  />
-                  <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none opacity-20">
-                    {[0, 1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-[1px] w-full bg-white" />)}
-                  </div>
-                </div>
-                <span className="text-[8px] font-black text-[#6784A3]/60 uppercase tracking-widest">L_CHAN</span>
-              </div>
+          <div className="flex items-center gap-24">
+            <ControlKnob 
+              label="Stereo Width" 
+              value={band.frequency} 
+              min={0} 
+              max={200} 
+              unit="%" 
+              color={band.color}
+              onChange={(v) => onUpdate({ frequency: v })}
+            />
+            
+            <ControlKnob 
+              label="Master Gain" 
+              value={band.gain} 
+              min={-18} 
+              max={18} 
+              unit="dB" 
+              color={band.color}
+              onChange={(v) => onUpdate({ gain: v })}
+            />
 
-              <ControlKnob 
-                label="Master Gain" 
-                value={band.gain} 
-                min={-18} 
-                max={18} 
-                unit="dB" 
-                color="#5FFF9F"
-                onChange={(v) => onUpdate({ gain: v })}
-              />
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-32 w-6 bg-[#1A2026] rounded-full relative overflow-hidden border border-white/5 shadow-inner">
-                  <motion.div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#5FFF9F] to-[#FFB000]"
-                    style={{ height: `${Math.max(0, ((band.gain + 18) / 36) * 100)}%` }}
-                  />
-                  <div className="absolute inset-0 flex flex-col justify-between py-1 pointer-events-none opacity-20">
-                    {[0, 1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-[1px] w-full bg-white" />)}
-                  </div>
-                </div>
-                <span className="text-[8px] font-black text-[#6784A3]/60 uppercase tracking-widest">R_CHAN</span>
-              </div>
-            </div>
+            <ControlKnob 
+              label="Phase Offset" 
+              value={band.q} 
+              min={0} 
+              max={180} 
+              unit="°" 
+              color={band.color}
+              onChange={(v) => onUpdate({ q: v })}
+            />
           </div>
         )}
-      </div>
-      
-      {/* Precision Detail Footer */}
-      <div className="flex justify-between items-center px-2 py-3 bg-black/30 rounded-lg border border-[#1A2026]/50">
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col">
-            <span className="text-[7px] font-black text-[#6784A3]/40 uppercase tracking-[0.2em]">Processing Latency</span>
-            <span className="text-[10px] font-mono text-[#5FFF9F]">0.00ms // ZERO-LATENCY</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[7px] font-black text-[#6784A3]/40 uppercase tracking-[0.2em]">Phase Response</span>
-            <span className="text-[10px] font-mono text-[#6784A3]/80">LINEAR_PHASE_MODE</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-[#6784A3]/30">
-          <span>Module_v4.2</span>
-          <div className="w-1.5 h-1.5 rounded-full bg-[#6784A3]/20" />
-          <span>Oasis_Core_X</span>
-        </div>
       </div>
     </div>
   );
