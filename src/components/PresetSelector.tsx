@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, Save, FolderOpen, Database } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, FolderOpen, Database } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'motion/react';
-import { Band } from '../App';
+import { Band, BandType } from '../App';
 
 interface Preset {
   id: string;
@@ -9,57 +9,190 @@ interface Preset {
   bands: Band[];
 }
 
+interface PresetCategory {
+  id: string;
+  label: string;
+  presets: Preset[];
+}
+
 interface PresetSelectorProps {
   onSelect: (bands: Band[]) => void;
   currentBands: Band[];
 }
 
-const DEFAULT_PRESETS: Preset[] = [
+const BAND_COLORS = ['#FF5F5F', '#FFB000', '#A38CF4', '#6784A3'];
+
+const b = (id: number, type: BandType, frequency: number, gain: number, q: number): Band => ({
+  id,
+  type,
+  frequency,
+  gain,
+  q,
+  enabled: true,
+  color: BAND_COLORS[id - 1],
+});
+
+const PRESET_CATEGORIES: PresetCategory[] = [
   {
-    id: 'default',
-    name: '00_INIT_SYSTEM',
-    bands: [
-      { id: 1, type: 'lowshelf', frequency: 100, gain: 0, q: 0.7, enabled: true, color: '#FF5F5F' },
-      { id: 2, type: 'peaking', frequency: 500, gain: 0, q: 1.0, enabled: true, color: '#6784A3' },
-      { id: 3, type: 'peaking', frequency: 2000, gain: 0, q: 1.0, enabled: true, color: '#FFB000' },
-      { id: 4, type: 'highshelf', frequency: 8000, gain: 0, q: 0.7, enabled: true, color: '#5FFF9F' },
-    ]
+    id: 'vocals',
+    label: 'VOCALS',
+    presets: [
+      {
+        id: 'vocal-clarity',
+        name: 'Vocal Clarity',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 350, -3.0, 1.0), b(3, 'peaking', 3000, 2.0, 0.8), b(4, 'highshelf', 10000, 3.0, 0.7)],
+      },
+      {
+        id: 'vocal-warmth',
+        name: 'Vocal Warmth',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 220, 3.0, 0.8), b(3, 'peaking', 2500, 0, 1.0), b(4, 'highshelf', 12000, -2.0, 0.7)],
+      },
+      {
+        id: 'vocal-presence',
+        name: 'Vocal Presence',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 300, -1.5, 1.0), b(3, 'peaking', 3500, 4.0, 0.6), b(4, 'highshelf', 10000, 1.5, 0.7)],
+      },
+      {
+        id: 'de-mud',
+        name: 'De-Mud',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 300, -4.0, 1.5), b(3, 'peaking', 5000, 1.0, 0.8), b(4, 'highshelf', 12000, 2.5, 0.7)],
+      },
+      {
+        id: 'broadcast-podcast',
+        name: 'Broadcast / Podcast',
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 180, 2.0, 0.8), b(3, 'peaking', 3000, 3.0, 0.7), b(4, 'highshelf', 10000, 1.0, 0.7)],
+      },
+      {
+        id: 'airy-vocals',
+        name: 'Airy Vocals',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 800, -2.0, 1.0), b(3, 'peaking', 5000, 1.0, 0.8), b(4, 'highshelf', 10000, 4.5, 0.7)],
+      },
+      {
+        id: 'nasal-reduction',
+        name: 'Nasal Reduction',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 1000, -4.5, 2.5), b(3, 'peaking', 3500, 1.0, 0.8), b(4, 'highshelf', 10000, 0, 0.7)],
+      },
+    ],
   },
   {
-    id: 'deep-kick',
-    name: '01_DEEP_PULSE',
-    bands: [
-      { id: 1, type: 'peaking', frequency: 60, gain: 4.5, q: 1.5, enabled: true, color: '#FF5F5F' },
-      { id: 2, type: 'peaking', frequency: 250, gain: -3.0, q: 2.0, enabled: true, color: '#6784A3' },
-      { id: 3, type: 'peaking', frequency: 3500, gain: 2.0, q: 1.2, enabled: true, color: '#FFB000' },
-      { id: 4, type: 'highcut', frequency: 12000, gain: 0, q: 0.7, enabled: true, color: '#5FFF9F' },
-    ]
+    id: 'drums',
+    label: 'DRUMS',
+    presets: [
+      {
+        id: 'kick-punch',
+        name: 'Kick Punch',
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 70, 4.0, 1.0), b(3, 'peaking', 300, -3.5, 1.5), b(4, 'peaking', 3500, 3.5, 1.2)],
+      },
+      {
+        id: 'snare-crack',
+        name: 'Snare Crack',
+        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 200, 2.5, 1.0), b(3, 'peaking', 800, -2.0, 1.5), b(4, 'peaking', 3000, 4.0, 1.0)],
+      },
+      {
+        id: 'hihat-shimmer',
+        name: 'Hi-Hat Shimmer',
+        bands: [b(1, 'lowcut', 300, 0, 0.7), b(2, 'peaking', 2000, 0, 1.0), b(3, 'peaking', 8000, 3.0, 0.8), b(4, 'highshelf', 12000, 2.0, 0.7)],
+      },
+      {
+        id: 'drum-bus-glue',
+        name: 'Drum Bus Glue',
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'lowshelf', 80, 2.0, 0.7), b(3, 'peaking', 400, -2.0, 0.6), b(4, 'highshelf', 10000, 2.5, 0.7)],
+      },
+      {
+        id: 'toms-thump',
+        name: 'Toms Thump',
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 90, 3.5, 1.0), b(3, 'peaking', 400, -3.0, 1.5), b(4, 'peaking', 3000, 3.0, 1.0)],
+      },
+      {
+        id: 'overhead-clean',
+        name: 'Overhead Clean',
+        bands: [b(1, 'lowcut', 200, 0, 0.7), b(2, 'peaking', 1000, 0, 1.0), b(3, 'peaking', 6000, 2.5, 0.8), b(4, 'highshelf', 12000, 3.0, 0.7)],
+      },
+      {
+        id: '808-sub',
+        name: '808 Sub',
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'lowshelf', 50, 5.0, 0.8), b(3, 'peaking', 350, -4.0, 0.8), b(4, 'highshelf', 8000, -2.0, 0.7)],
+      },
+    ],
   },
   {
-    id: 'vocal-air',
-    name: '02_VOCAL_ATMOS',
-    bands: [
-      { id: 1, type: 'lowcut', frequency: 120, gain: 0, q: 0.7, enabled: true, color: '#FF5F5F' },
-      { id: 2, type: 'peaking', frequency: 1500, gain: 1.5, q: 0.8, enabled: true, color: '#6784A3' },
-      { id: 3, type: 'highshelf', frequency: 8000, gain: 4.0, q: 0.7, enabled: true, color: '#FFB000' },
-      { id: 4, type: 'peaking', frequency: 3500, gain: 2.0, q: 1.0, enabled: true, color: '#5FFF9F' },
-    ]
+    id: 'instruments',
+    label: 'INSTRUMENTS',
+    presets: [
+      {
+        id: 'electric-guitar-edge',
+        name: 'Electric Guitar Edge',
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 400, -2.0, 1.0), b(3, 'peaking', 2000, 3.5, 0.8), b(4, 'highshelf', 8000, 1.0, 0.7)],
+      },
+      {
+        id: 'piano-fullness',
+        name: 'Piano Fullness',
+        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'lowshelf', 180, 2.0, 0.7), b(3, 'peaking', 4000, 2.0, 0.8), b(4, 'highshelf', 10000, 1.5, 0.7)],
+      },
+      {
+        id: 'synth-pad-warmth',
+        name: 'Synth Pad Warmth',
+        bands: [b(1, 'lowcut', 40, 0, 0.7), b(2, 'lowshelf', 150, 2.5, 0.7), b(3, 'peaking', 2000, -1.0, 0.8), b(4, 'highshelf', 8000, -3.0, 0.7)],
+      },
+      {
+        id: 'synth-lead-cut-through',
+        name: 'Synth Lead Cut-Through',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, -2.5, 1.5), b(3, 'peaking', 3000, 4.0, 0.7), b(4, 'highshelf', 10000, 1.5, 0.7)],
+      },
+      {
+        id: 'strings-sweetness',
+        name: 'Strings Sweetness',
+        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 250, 1.0, 0.8), b(3, 'peaking', 2000, -2.0, 1.5), b(4, 'highshelf', 10000, 3.0, 0.7)],
+      },
+      {
+        id: 'brass-punch',
+        name: 'Brass Punch',
+        bands: [b(1, 'lowcut', 100, 0, 0.7), b(2, 'peaking', 500, -1.5, 1.0), b(3, 'peaking', 2000, 3.5, 0.8), b(4, 'highshelf', 8000, 1.0, 0.7)],
+      },
+    ],
   },
   {
-    id: 'mid-bite',
-    name: '03_MID_DEFINITION',
-    bands: [
-      { id: 1, type: 'lowshelf', frequency: 200, gain: -2.0, q: 0.7, enabled: true, color: '#FF5F5F' },
-      { id: 2, type: 'peaking', frequency: 800, gain: 3.5, q: 2.5, enabled: true, color: '#6784A3' },
-      { id: 3, type: 'peaking', frequency: 2500, gain: 4.0, q: 1.8, enabled: true, color: '#FFB000' },
-      { id: 4, type: 'highcut', frequency: 15000, gain: 0, q: 0.7, enabled: true, color: '#5FFF9F' },
-    ]
-  }
+    id: 'general',
+    label: 'GENERAL',
+    presets: [
+      {
+        id: 'low-cut-80',
+        name: 'Low Cut (HPF 80)',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
+      },
+      {
+        id: 'low-cut-120',
+        name: 'Low Cut (HPF 120)',
+        bands: [b(1, 'lowcut', 120, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
+      },
+      {
+        id: 'high-cut-12k',
+        name: 'High Cut (LPF 12k)',
+        bands: [b(1, 'lowcut', 60, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highcut', 12000, 0, 0.7)],
+      },
+      {
+        id: 'telephone',
+        name: 'Telephone',
+        bands: [b(1, 'lowcut', 300, 0, 0.7), b(2, 'peaking', 1000, 0, 1.0), b(3, 'peaking', 2000, 0, 1.0), b(4, 'highcut', 3500, 0, 0.7)],
+      },
+      {
+        id: 'de-harsh',
+        name: 'De-Harsh',
+        bands: [b(1, 'lowcut', 30, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3200, -4.0, 2.0), b(4, 'highshelf', 10000, 0, 0.7)],
+      },
+      {
+        id: 'flat-bypass',
+        name: 'Flat / Bypass',
+        bands: [b(1, 'lowcut', 80, 0, 0.7), b(2, 'peaking', 500, 0, 1.0), b(3, 'peaking', 3000, 0, 1.0), b(4, 'highshelf', 10000, 0, 0.7)],
+      },
+    ],
+  },
 ];
 
 export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, currentBands }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState('default');
+  const [selectedId, setSelectedId] = useState('flat-bypass');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const handleSelect = (preset: Preset) => {
     onSelect(preset.bands);
@@ -67,7 +200,15 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
     setIsOpen(false);
   };
 
-  const activePreset = DEFAULT_PRESETS.find(p => p.id === selectedId) || DEFAULT_PRESETS[0];
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategory(prev => prev === categoryId ? null : categoryId);
+  };
+
+  const activePreset = PRESET_CATEGORIES
+    .flatMap(c => c.presets)
+    .find(p => p.id === selectedId);
+
+  const activePresetName = activePreset?.name || 'Flat / Bypass';
 
   return (
     <div className="relative z-[100]">
@@ -80,7 +221,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
             <Database size={14} className="text-[#FFB000]/60 group-hover:text-[#FFB000]" />
             <div className="flex flex-col items-start">
               <span className="text-[7px] text-[#6784A3]/40 uppercase font-bold tracking-widest leading-none mb-0.5">Active Preset</span>
-              <span className="text-[11px] text-[#6784A3] font-mono tracking-tighter uppercase">{activePreset.name}</span>
+              <span className="text-[11px] text-[#6784A3] font-mono tracking-tighter uppercase">{activePresetName}</span>
             </div>
           </div>
           <ChevronDown size={14} className={`text-[#6784A3]/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -99,31 +240,58 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-12 left-0 w-64 bg-[#0A0C0F] border-2 border-[#1A2026] shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-20 overflow-hidden"
+              className="absolute top-12 left-0 w-72 bg-[#0A0C0F] border-2 border-[#1A2026] shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-20 overflow-hidden"
             >
               <div className="p-2 border-b border-[#1A2026] bg-[#0D1117] flex items-center justify-between">
                 <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#6784A3]/40">Preset Library</span>
                 <FolderOpen size={10} className="text-[#6784A3]/40" />
               </div>
-              <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                {DEFAULT_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => handleSelect(preset)}
-                    className={`w-full text-left px-4 py-3 border-b border-[#1A2026]/50 last:border-0 hover:bg-[#1A2026]/40 transition-colors flex items-center justify-between group ${
-                      selectedId === preset.id ? 'bg-[#FFB000]/5' : ''
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <span className={`text-xs font-mono tracking-tighter ${selectedId === preset.id ? 'text-[#FFB000]' : 'text-[#6784A3]'}`}>
-                        {preset.name}
+              <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                {PRESET_CATEGORIES.map((category) => (
+                  <div key={category.id}>
+                    <button
+                      onClick={() => toggleCategory(category.id)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 bg-[#0D1117]/80 border-b border-[#1A2026]/50 hover:bg-[#1A2026]/40 transition-colors"
+                    >
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FFB000]/70">
+                        {category.label}
                       </span>
-                      <span className="text-[8px] uppercase tracking-widest text-[#6784A3]/30">Verified Oasis Binary</span>
-                    </div>
-                    {selectedId === preset.id && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#FFB000] shadow-[0_0_8px_rgba(255,176,0,0.6)]" />
-                    )}
-                  </button>
+                      <ChevronRight
+                        size={12}
+                        className={`text-[#6784A3]/40 transition-transform duration-200 ${
+                          expandedCategory === category.id ? 'rotate-90' : ''
+                        }`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {expandedCategory === category.id && (
+                        <Motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          {category.presets.map((preset) => (
+                            <button
+                              key={preset.id}
+                              onClick={() => handleSelect(preset)}
+                              className={`w-full text-left px-6 py-2.5 border-b border-[#1A2026]/30 last:border-0 hover:bg-[#1A2026]/40 transition-colors flex items-center justify-between group ${
+                                selectedId === preset.id ? 'bg-[#FFB000]/5' : ''
+                              }`}
+                            >
+                              <span className={`text-xs font-mono tracking-tighter ${selectedId === preset.id ? 'text-[#FFB000]' : 'text-[#6784A3]'}`}>
+                                {preset.name}
+                              </span>
+                              {selectedId === preset.id && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#FFB000] shadow-[0_0_8px_rgba(255,176,0,0.6)]" />
+                              )}
+                            </button>
+                          ))}
+                        </Motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 ))}
               </div>
               <div className="p-2 bg-[#050608] flex justify-center">
@@ -146,7 +314,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
           border-radius: 2px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #6784A3/40;
+          background: #6784A3;
         }
       `}</style>
     </div>

@@ -105,7 +105,7 @@ export default function App() {
           {/* Controls Matrix */}
           <div className="w-full">
             {/* Main Processor Panel */}
-            <div className="bg-[#0A0C0F] border border-[#1A2026] rounded-xl relative shadow-xl overflow-hidden group">
+            <div className="bg-[#0A0C0F] border border-[#1A2026] rounded-xl relative shadow-xl group">
                {/* Industrial Branding Accent */}
               <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none group-hover:opacity-[0.05] transition-opacity">
                 <Settings2 size={160} strokeWidth={0.5} />
