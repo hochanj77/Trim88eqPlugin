@@ -4,17 +4,18 @@
 struct FactoryPreset
 {
     juce::String name;
+    juce::String category;
 
     struct BandConfig
     {
         float freq;
         float gain;
         float q;
-        int type;      // 0=lowshelf, 1=peaking, 2=highshelf, 3=lowcut, 4=highcut
+        int type;      // 0=lowshelf, 1=peaking, 2=highshelf, 3=lowcut, 4=highcut, 5=brickwalllow, 6=brickwallhigh
         bool enabled;
     };
 
-    BandConfig bands[3];
+    BandConfig bands[4];
     float masterGain;
 };
 
@@ -25,6 +26,7 @@ public:
 
     int getNumFactoryPresets() const;
     juce::String getFactoryPresetName (int index) const;
+    juce::String getFactoryPresetCategory (int index) const;
     void loadFactoryPreset (int index);
 
     void saveUserPreset (const juce::String& name);
@@ -39,6 +41,10 @@ public:
 
     void loadNextPreset();
     void loadPreviousPreset();
+
+    // Category helpers
+    juce::StringArray getCategoryNames() const;
+    std::vector<int> getPresetsInCategory (const juce::String& category) const;
 
 private:
     juce::AudioProcessorValueTreeState& valueTreeState;

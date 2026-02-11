@@ -17,11 +17,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout TR88EQProcessor::createParam
     auto gainRange = juce::NormalisableRange<float> (-18.0f, 18.0f, 0.01f);
     auto qRange    = juce::NormalisableRange<float> (0.1f, 10.0f, 0.01f, 0.5f);
 
-    juce::StringArray filterTypes { "lowshelf", "peaking", "highshelf", "lowcut", "highcut" };
-    float defaultFreqs[3] = { 100.0f, 1000.0f, 8000.0f };
-    juce::String defaultTypes[3] = { "lowshelf", "peaking", "highshelf" };
+    // Type indices: 0=lowshelf, 1=peaking, 2=highshelf, 3=lowcut, 4=highcut, 5=brickwalllow, 6=brickwallhigh
+    juce::StringArray filterTypes { "lowshelf", "peaking", "highshelf", "lowcut", "highcut", "brickwalllow", "brickwallhigh" };
+    float defaultFreqs[4]      = { 80.0f, 500.0f, 3000.0f, 10000.0f };
+    float defaultQ[4]          = { 0.7f, 1.0f, 1.0f, 0.7f };
+    juce::String defaultTypes[4] = { "lowcut", "peaking", "peaking", "highcut" };
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < numEQBands; ++i)
     {
         auto idx = juce::String (i + 1);
 
@@ -38,7 +40,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout TR88EQProcessor::createParam
         params.push_back (std::make_unique<juce::AudioParameterFloat> (
             juce::ParameterID { "band" + idx + "_q", 1 },
             "Band " + idx + " Q",
-            qRange, 0.7f));
+            qRange, defaultQ[i]));
 
         params.push_back (std::make_unique<juce::AudioParameterChoice> (
             juce::ParameterID { "band" + idx + "_type", 1 },
@@ -56,6 +58,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout TR88EQProcessor::createParam
         juce::ParameterID { "master_gain", 1 },
         "Master Gain",
         gainRange, 0.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID { "master_width", 1 },
+        "Stereo Width",
+        juce::NormalisableRange<float> (0.0f, 200.0f, 0.1f), 100.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (
+        juce::ParameterID { "master_phase", 1 },
+        "Phase Offset",
+        juce::NormalisableRange<float> (0.0f, 180.0f, 0.1f), 0.0f));
 
     params.push_back (std::make_unique<juce::AudioParameterBool> (
         juce::ParameterID { "power", 1 },
@@ -80,6 +92,16 @@ BandParameters TR88EQProcessor::getBandParameters (int bandIndex) const
 std::atomic<float>* TR88EQProcessor::getMasterGain() const
 {
     return apvts.getRawParameterValue ("master_gain");
+}
+
+std::atomic<float>* TR88EQProcessor::getMasterWidth() const
+{
+    return apvts.getRawParameterValue ("master_width");
+}
+
+std::atomic<float>* TR88EQProcessor::getMasterPhase() const
+{
+    return apvts.getRawParameterValue ("master_phase");
 }
 
 std::atomic<float>* TR88EQProcessor::getPowerParam() const
@@ -153,6 +175,10 @@ juce::dsp::IIR::Coefficients<float>::Ptr TR88EQProcessor::makeCoefficients (int 
             return juce::dsp::IIR::Coefficients<float>::makeHighPass (sr, freq, q);
         case 4: // highcut (lowpass)
             return juce::dsp::IIR::Coefficients<float>::makeLowPass (sr, freq, q);
+        case 5: // brickwalllow (steep highpass)
+            return juce::dsp::IIR::Coefficients<float>::makeHighPass (sr, freq, 0.707f);
+        case 6: // brickwallhigh (steep lowpass)
+            return juce::dsp::IIR::Coefficients<float>::makeLowPass (sr, freq, 0.707f);
         default:
             return juce::dsp::IIR::Coefficients<float>::makePeakFilter (sr, freq, q,
                        juce::Decibels::decibelsToGain (gain));
@@ -161,7 +187,7 @@ juce::dsp::IIR::Coefficients<float>::Ptr TR88EQProcessor::makeCoefficients (int 
 
 void TR88EQProcessor::updateFilters()
 {
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < numEQBands; ++i)
     {
         auto bp = getBandParameters (i);
         int type = (int) bp.type->load();
@@ -173,8 +199,8 @@ void TR88EQProcessor::updateFilters()
         *bands[i].filter1.state = *coeffs;
         currentCoeffs[i] = coeffs;
 
-        // Cascade for cut filters (4th order)
-        bool cascade = (type == 3 || type == 4);
+        // Cascade for cut and brickwall filters (4th order)
+        bool cascade = (type == 3 || type == 4 || type == 5 || type == 6);
         bands[i].needsCascade = cascade;
         currentBandCascaded[i] = cascade;
 
@@ -214,7 +240,7 @@ void TR88EQProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Midi
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < numEQBands; ++i)
     {
         if (! currentBandEnabled[i])
             continue;
@@ -302,7 +328,7 @@ void TR88EQProcessor::getFFTData (float* outputMagnitudes, int numPoints) const
 void TR88EQProcessor::getMagnitudeResponseForBand (int bandIndex, const double* frequencies,
                                                      double* magnitudes, int numPoints) const
 {
-    if (bandIndex < 0 || bandIndex >= 3 || ! currentBandEnabled[bandIndex])
+    if (bandIndex < 0 || bandIndex >= numEQBands || ! currentBandEnabled[bandIndex])
     {
         for (int i = 0; i < numPoints; ++i)
             magnitudes[i] = 1.0;
@@ -339,7 +365,7 @@ void TR88EQProcessor::getCompositeMagnitudeResponse (const double* frequencies,
 
     std::vector<double> bandMag ((size_t) numPoints);
 
-    for (int b = 0; b < 3; ++b)
+    for (int b = 0; b < numEQBands; ++b)
     {
         getMagnitudeResponseForBand (b, frequencies, bandMag.data(), numPoints);
         for (int i = 0; i < numPoints; ++i)

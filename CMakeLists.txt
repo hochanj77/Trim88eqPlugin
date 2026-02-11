@@ -10,6 +10,7 @@ add_subdirectory(${JUCE_PATH} ${CMAKE_BINARY_DIR}/JUCE)
 
 juce_add_plugin(TR88_EQ
     COMPANY_NAME "Oasis Creative Labs"
+    BUNDLE_ID "com.OasisCreativeLabs.TR88EQ"
     PLUGIN_MANUFACTURER_CODE Oasi
     PLUGIN_CODE Tr88
     FORMATS VST3 AU Standalone

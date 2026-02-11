@@ -46,7 +46,11 @@ public:
     // Band parameter accessors
     BandParameters getBandParameters (int bandIndex) const;
     std::atomic<float>* getMasterGain() const;
+    std::atomic<float>* getMasterWidth() const;
+    std::atomic<float>* getMasterPhase() const;
     std::atomic<float>* getPowerParam() const;
+
+    static constexpr int numEQBands = 4;
 
     // --- FFT / Spectrum Analyzer Data ---
     static constexpr int fftOrder = 12;
@@ -80,17 +84,17 @@ private:
         bool needsCascade = false;
     };
 
-    FilterBand bands[3];
+    FilterBand bands[4];
     juce::dsp::Gain<float> masterGainDSP;
 
     void updateFilters();
     juce::dsp::IIR::Coefficients<float>::Ptr makeCoefficients (int bandIndex) const;
 
     // Store current coefficients for magnitude response queries
-    juce::dsp::IIR::Coefficients<float>::Ptr currentCoeffs[3];
-    juce::dsp::IIR::Coefficients<float>::Ptr currentCascadeCoeffs[3];
-    bool currentBandCascaded[3] = { false, false, false };
-    bool currentBandEnabled[3]  = { true, true, true };
+    juce::dsp::IIR::Coefficients<float>::Ptr currentCoeffs[4];
+    juce::dsp::IIR::Coefficients<float>::Ptr currentCascadeCoeffs[4];
+    bool currentBandCascaded[4] = { false, false, false, false };
+    bool currentBandEnabled[4]  = { true, true, true, true };
 
     // --- FFT ---
     juce::dsp::FFT forwardFFT { fftOrder };

@@ -164,7 +164,7 @@ void EQDisplay::drawBandCurves (juce::Graphics& g)
 
     std::vector<double> magnitudes ((size_t) numFreqPoints);
 
-    for (int b = 0; b < 3; ++b)
+    for (int b = 0; b < 4; ++b)
     {
         auto bp = processorRef.getBandParameters (b);
         if (bp.enabled->load() < 0.5f) continue;
@@ -242,7 +242,7 @@ void EQDisplay::drawCompositeCurve (juce::Graphics& g)
 
 void EQDisplay::drawNodes (juce::Graphics& g)
 {
-    for (int b = 0; b < 3; ++b)
+    for (int b = 0; b < 4; ++b)
     {
         auto bp = processorRef.getBandParameters (b);
         if (bp.enabled->load() < 0.5f) continue;
@@ -348,15 +348,15 @@ juce::Point<float> EQDisplay::getNodePosition (int bandIndex) const
     int type = (int) bp.type->load();
 
     auto x = freqToX (freq);
-    // Cut filters show node at 0dB line
-    auto y = (type == 3 || type == 4) ? dbToY (0.0f) : dbToY (gain);
+    // Cut and brickwall filters show node at 0dB line
+    auto y = (type == 3 || type == 4 || type == 5 || type == 6) ? dbToY (0.0f) : dbToY (gain);
 
     return { x, y };
 }
 
 int EQDisplay::hitTestNode (juce::Point<float> pos) const
 {
-    for (int b = 0; b < 3; ++b)
+    for (int b = 0; b < 4; ++b)
     {
         auto bp = processorRef.getBandParameters (b);
         if (bp.enabled->load() < 0.5f) continue;
@@ -421,7 +421,7 @@ void EQDisplay::mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWhee
 {
     // Scroll adjusts Q on hovered/selected band
     int targetBand = hoveredBand >= 0 ? hoveredBand : selectedBand;
-    if (targetBand < 0 || targetBand >= 3) return;
+    if (targetBand < 0 || targetBand >= 4) return;
 
     auto idx = juce::String (targetBand + 1);
     if (auto* p = processorRef.apvts.getParameter ("band" + idx + "_q"))

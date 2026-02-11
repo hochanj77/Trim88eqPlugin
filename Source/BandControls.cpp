@@ -3,9 +3,9 @@
 BandControls::BandControls (juce::AudioProcessorValueTreeState& apvts)
     : valueTreeState (apvts)
 {
-    // --- Band Selector Buttons ---
-    const juce::StringArray labels { "L", "M", "H", "MSTR" };
-    for (int i = 0; i < 4; ++i)
+    // --- Band Selector Buttons: 4 EQ bands + Master ---
+    const juce::StringArray labels { "1", "2", "3", "4", "M" };
+    for (int i = 0; i < 5; ++i)
     {
         auto* btn = bandButtons.add (new juce::TextButton (labels[i]));
         btn->setClickingTogglesState (false);
@@ -13,23 +13,23 @@ BandControls::BandControls (juce::AudioProcessorValueTreeState& apvts)
         {
             setSelectedBand (i);
             if (onBandSelected)
-                onBandSelected (i < 3 ? i : -1);
+                onBandSelected (i < 4 ? i : -1);
         };
         addAndMakeVisible (btn);
     }
 
-    // --- Filter Type Buttons ---
+    // --- Filter Type Buttons: LC, PK, HC, BH, BL ---
     for (int i = 0; i < 5; ++i)
     {
         auto* btn = typeButtons.add (new juce::TextButton (typeLabels[i]));
         btn->setClickingTogglesState (false);
         btn->onClick = [this, i]
         {
-            if (selectedBand >= 0 && selectedBand < 3)
+            if (selectedBand >= 0 && selectedBand < 4)
             {
                 auto idx = juce::String (selectedBand + 1);
                 if (auto* p = valueTreeState.getParameter ("band" + idx + "_type"))
-                    p->setValueNotifyingHost (p->convertTo0to1 ((float) i));
+                    p->setValueNotifyingHost (p->convertTo0to1 ((float) typeButtonToParamIndex[i]));
                 updateTypeButtonStates();
             }
         };
@@ -43,20 +43,26 @@ BandControls::BandControls (juce::AudioProcessorValueTreeState& apvts)
     // --- EQ Knobs ---
     freqKnob = std::make_unique<ControlKnob> ("Frequency", "Hz", TR88Colours::band2);
     gainKnob = std::make_unique<ControlKnob> ("Gain", "dB", TR88Colours::band2);
-    qKnob    = std::make_unique<ControlKnob> ("Q / Quality", "", TR88Colours::band2);
+    qKnob    = std::make_unique<ControlKnob> ("Bandwidth", "", TR88Colours::band2);
     addAndMakeVisible (*freqKnob);
     addAndMakeVisible (*gainKnob);
     addAndMakeVisible (*qKnob);
 
-    // --- Master Knob ---
-    masterGainKnob = std::make_unique<ControlKnob> ("Master Gain", "dB", TR88Colours::master);
+    // --- Master Knobs ---
+    masterWidthKnob = std::make_unique<ControlKnob> ("Stereo Width", "%", TR88Colours::master);
+    masterGainKnob  = std::make_unique<ControlKnob> ("Master Gain", "dB", TR88Colours::master);
+    masterPhaseKnob = std::make_unique<ControlKnob> ("Phase Offset", juce::String::charToString (0x00B0), TR88Colours::master);
+    addAndMakeVisible (*masterWidthKnob);
     addAndMakeVisible (*masterGainKnob);
+    addAndMakeVisible (*masterPhaseKnob);
 
     // Set double-click return values
     freqKnob->getSlider().setDoubleClickReturnValue (true, 1000.0);
     gainKnob->getSlider().setDoubleClickReturnValue (true, 0.0);
     qKnob->getSlider().setDoubleClickReturnValue (true, 0.7);
+    masterWidthKnob->getSlider().setDoubleClickReturnValue (true, 100.0);
     masterGainKnob->getSlider().setDoubleClickReturnValue (true, 0.0);
+    masterPhaseKnob->getSlider().setDoubleClickReturnValue (true, 0.0);
 
     setSelectedBand (1);
 }
@@ -67,7 +73,9 @@ BandControls::~BandControls()
     freqAttach.reset();
     gainAttach.reset();
     qAttach.reset();
+    masterWidthAttach.reset();
     masterGainAttach.reset();
+    masterPhaseAttach.reset();
     enableAttach.reset();
 }
 
@@ -78,7 +86,7 @@ void BandControls::setSelectedBand (int bandIndex)
     updateTypeButtonStates();
 
     // Update knob colours
-    if (bandIndex >= 0 && bandIndex < 3)
+    if (bandIndex >= 0 && bandIndex < 4)
     {
         auto colour = TR88Colours::getBandColour (bandIndex);
         freqKnob->setColour (colour);
@@ -87,11 +95,13 @@ void BandControls::setSelectedBand (int bandIndex)
     }
 
     // Show/hide appropriate knobs
-    bool isMaster = (bandIndex == 3);
+    bool isMaster = (bandIndex == 4);
     freqKnob->setVisible (! isMaster);
     gainKnob->setVisible (! isMaster);
     qKnob->setVisible (! isMaster);
+    masterWidthKnob->setVisible (isMaster);
     masterGainKnob->setVisible (isMaster);
+    masterPhaseKnob->setVisible (isMaster);
 
     for (auto* tb : typeButtons)
         tb->setVisible (! isMaster);
@@ -106,10 +116,12 @@ void BandControls::updateAttachments()
     freqAttach.reset();
     gainAttach.reset();
     qAttach.reset();
+    masterWidthAttach.reset();
     masterGainAttach.reset();
+    masterPhaseAttach.reset();
     enableAttach.reset();
 
-    if (selectedBand >= 0 && selectedBand < 3)
+    if (selectedBand >= 0 && selectedBand < 4)
     {
         auto idx = juce::String (selectedBand + 1);
 
@@ -122,10 +134,14 @@ void BandControls::updateAttachments()
         enableAttach = std::make_unique<juce::ButtonParameterAttachment> (
             *valueTreeState.getParameter ("band" + idx + "_enabled"), *enableButton);
     }
-    else if (selectedBand == 3)
+    else if (selectedBand == 4)
     {
+        masterWidthAttach = std::make_unique<juce::SliderParameterAttachment> (
+            *valueTreeState.getParameter ("master_width"), masterWidthKnob->getSlider());
         masterGainAttach = std::make_unique<juce::SliderParameterAttachment> (
             *valueTreeState.getParameter ("master_gain"), masterGainKnob->getSlider());
+        masterPhaseAttach = std::make_unique<juce::SliderParameterAttachment> (
+            *valueTreeState.getParameter ("master_phase"), masterPhaseKnob->getSlider());
         enableAttach = std::make_unique<juce::ButtonParameterAttachment> (
             *valueTreeState.getParameter ("power"), *enableButton);
     }
@@ -133,7 +149,7 @@ void BandControls::updateAttachments()
 
 void BandControls::updateTypeButtonStates()
 {
-    if (selectedBand < 0 || selectedBand >= 3) return;
+    if (selectedBand < 0 || selectedBand >= 4) return;
 
     auto idx = juce::String (selectedBand + 1);
     auto* param = valueTreeState.getParameter ("band" + idx + "_type");
@@ -141,7 +157,7 @@ void BandControls::updateTypeButtonStates()
 
     for (int i = 0; i < typeButtons.size(); ++i)
     {
-        bool active = (i == currentType);
+        bool active = (typeButtonToParamIndex[i] == currentType);
         typeButtons[i]->setColour (juce::TextButton::buttonColourId,
                                     active ? TR88Colours::textSecondary : TR88Colours::bgControls);
         typeButtons[i]->setColour (juce::TextButton::textColourOffId,
@@ -155,7 +171,6 @@ void BandControls::paint (juce::Graphics& g)
 
     // Left column background
     auto leftCol = bounds.removeFromLeft (70);
-    // (band buttons are child components, drawn automatically)
 
     // Right panel background
     g.setColour (TR88Colours::bgControls);
@@ -176,13 +191,13 @@ void BandControls::paint (juce::Graphics& g)
 
     g.setColour (TR88Colours::textSecondary);
     g.setFont (juce::Font (10.0f, juce::Font::bold));
-    auto topLabel = selectedBand == 3 ? "FINAL STAGE" : "PROCESSOR NODE";
+    auto topLabel = selectedBand == 4 ? "FINAL STAGE" : "PROCESSOR NODE";
     g.drawText (topLabel, labelArea.removeFromTop (16), juce::Justification::centredLeft);
 
     g.setColour (TR88Colours::white);
     g.setFont (juce::Font (13.0f, juce::Font::bold));
     juce::String nodeLabel;
-    if (selectedBand == 3)
+    if (selectedBand == 4)
         nodeLabel = "OASIS_MASTER_OUT // GAIN_COMP";
     else
     {
@@ -192,10 +207,13 @@ void BandControls::paint (juce::Graphics& g)
         if (typeParam)
         {
             int t = (int) typeParam->convertFrom0to1 (typeParam->getValue());
-            const juce::StringArray names { "LOWSHELF", "PEAKING", "HIGHSHELF", "LOWCUT", "HIGHCUT" };
+            const juce::StringArray names { "LOWSHELF", "PEAKING", "HIGHSHELF", "LOWCUT", "HIGHCUT", "BRICKWALL_LP", "BRICKWALL_HP" };
             if (t >= 0 && t < names.size()) typeName = names[t];
         }
-        nodeLabel = "OASIS_NODE_0" + idx + " // TYPE_" + typeName;
+
+        const juce::StringArray slotNames { "LOW_CUT", "LOW_MID", "HIGH_MID", "HIGH_CUT" };
+        juce::String slotName = (selectedBand >= 0 && selectedBand < 4) ? slotNames[selectedBand] : "UNKNOWN";
+        nodeLabel = "OASIS_NODE_0" + idx + " // " + slotName;
     }
     g.drawText (nodeLabel, labelArea, juce::Justification::centredLeft);
 
@@ -212,7 +230,7 @@ void BandControls::paint (juce::Graphics& g)
 
 void BandControls::drawBandBadge (juce::Graphics& g, juce::Rectangle<int> area)
 {
-    auto colour = selectedBand < 3 ? TR88Colours::getBandColour (selectedBand) : TR88Colours::master;
+    auto colour = selectedBand < 4 ? TR88Colours::getBandColour (selectedBand) : TR88Colours::master;
 
     g.setColour (colour.withAlpha (0.08f));
     g.fillRoundedRectangle (area.toFloat(), 10.0f);
@@ -221,7 +239,7 @@ void BandControls::drawBandBadge (juce::Graphics& g, juce::Rectangle<int> area)
 
     g.setColour (colour);
     g.setFont (juce::Font (20.0f, juce::Font::bold));
-    auto text = selectedBand == 3 ? "M" : juce::String (selectedBand + 1);
+    auto text = selectedBand == 4 ? "M" : juce::String (selectedBand + 1);
     g.drawText (text, area, juce::Justification::centred);
 }
 
@@ -265,14 +283,14 @@ void BandControls::resized()
 {
     auto bounds = getLocalBounds();
 
-    // Left column: band selector buttons
+    // Left column: band selector buttons (5 buttons now)
     auto leftCol = bounds.removeFromLeft (70);
-    leftCol.removeFromTop (28); // "PROCESSOR" label space
+    leftCol.removeFromTop (12);
 
     for (int i = 0; i < bandButtons.size(); ++i)
     {
-        auto btnArea = leftCol.removeFromTop (56);
-        btnArea.reduce (4, 3);
+        auto btnArea = leftCol.removeFromTop (48);
+        btnArea.reduce (4, 2);
         bandButtons[i]->setBounds (btnArea);
 
         // Style based on selection
@@ -298,7 +316,7 @@ void BandControls::resized()
     enableButton->setBounds (enableArea);
 
     // Type buttons
-    if (selectedBand < 3)
+    if (selectedBand < 4)
     {
         auto typeArea = headerRight.removeFromRight (5 * 48 + 4);
         typeArea.reduce (0, 8);
@@ -314,7 +332,7 @@ void BandControls::resized()
     // Knob area (centered in remaining space)
     auto knobArea = rightPanel.reduced (0, 10);
 
-    if (selectedBand < 3)
+    if (selectedBand < 4)
     {
         // 3 knobs, evenly spaced
         auto knobWidth = 120;
@@ -327,9 +345,13 @@ void BandControls::resized()
     }
     else
     {
-        // Master: single centered knob
+        // Master: 3 knobs
         auto knobWidth = 120;
-        masterGainKnob->setBounds (knobArea.getCentreX() - knobWidth / 2,
-                                    knobArea.getY(), knobWidth, knobArea.getHeight());
+        auto totalWidth = knobWidth * 3;
+        auto startX = knobArea.getCentreX() - totalWidth / 2;
+
+        masterWidthKnob->setBounds (startX, knobArea.getY(), knobWidth, knobArea.getHeight());
+        masterGainKnob->setBounds (startX + knobWidth, knobArea.getY(), knobWidth, knobArea.getHeight());
+        masterPhaseKnob->setBounds (startX + knobWidth * 2, knobArea.getY(), knobWidth, knobArea.getHeight());
     }
 }

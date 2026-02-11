@@ -13,14 +13,14 @@ public:
     void paint (juce::Graphics& g) override;
     void resized() override;
 
-    void setSelectedBand (int bandIndex);  // 0-2 for EQ bands, 3 for master
+    void setSelectedBand (int bandIndex);  // 0-3 for EQ bands, 4 for master
     int getSelectedBand() const { return selectedBand; }
 
     std::function<void (int)> onBandSelected;
 
 private:
     juce::AudioProcessorValueTreeState& valueTreeState;
-    int selectedBand = 1; // Start on mid band
+    int selectedBand = 1; // Start on low-mid band
 
     // --- Band Selector Buttons (left column) ---
     juce::OwnedArray<juce::TextButton> bandButtons;
@@ -31,11 +31,17 @@ private:
     std::unique_ptr<ControlKnob> qKnob;
 
     // --- Master Controls ---
+    std::unique_ptr<ControlKnob> masterWidthKnob;
     std::unique_ptr<ControlKnob> masterGainKnob;
+    std::unique_ptr<ControlKnob> masterPhaseKnob;
 
     // --- Filter Type Buttons ---
+    // UI buttons: LC, PK, HC, BH, BL (no LS/HS)
     juce::OwnedArray<juce::TextButton> typeButtons;
-    juce::StringArray typeLabels { "LS", "PK", "HS", "LC", "HC" };
+    juce::StringArray typeLabels { "LC", "PK", "HC", "BH", "BL" };
+    // Maps button index to parameter type index:
+    // 0=lowshelf, 1=peaking, 2=highshelf, 3=lowcut, 4=highcut, 5=brickwalllow, 6=brickwallhigh
+    const int typeButtonToParamIndex[5] = { 3, 1, 4, 6, 5 };  // LC→3, PK→1, HC→4, BH→6, BL→5
 
     // --- Enable Button ---
     std::unique_ptr<juce::ToggleButton> enableButton;
@@ -44,7 +50,9 @@ private:
     std::unique_ptr<juce::SliderParameterAttachment> freqAttach;
     std::unique_ptr<juce::SliderParameterAttachment> gainAttach;
     std::unique_ptr<juce::SliderParameterAttachment> qAttach;
+    std::unique_ptr<juce::SliderParameterAttachment> masterWidthAttach;
     std::unique_ptr<juce::SliderParameterAttachment> masterGainAttach;
+    std::unique_ptr<juce::SliderParameterAttachment> masterPhaseAttach;
     std::unique_ptr<juce::ButtonParameterAttachment> enableAttach;
 
     void updateAttachments();

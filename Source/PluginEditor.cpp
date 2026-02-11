@@ -14,7 +14,7 @@ TR88EQEditor::TR88EQEditor (TR88EQProcessor& processor)
     addAndMakeVisible (eqDisplay);
     eqDisplay.onBandSelected = [this] (int band)
     {
-        if (band >= 0 && band < 3)
+        if (band >= 0 && band < 4)
             bandControls.setSelectedBand (band);
     };
 
@@ -31,9 +31,10 @@ TR88EQEditor::TR88EQEditor (TR88EQProcessor& processor)
     populatePresetSelector();
     presetSelector.onChange = [this]
     {
-        auto idx = presetSelector.getSelectedItemIndex();
-        if (idx >= 0)
+        auto id = presetSelector.getSelectedId();
+        if (id > 0)
         {
+            auto idx = id - 1;
             presetManager.loadFactoryPreset (idx);
             presetManager.setCurrentPresetIndex (idx);
         }
@@ -85,11 +86,23 @@ TR88EQEditor::~TR88EQEditor()
 void TR88EQEditor::populatePresetSelector()
 {
     presetSelector.clear();
-    for (int i = 0; i < presetManager.getNumFactoryPresets(); ++i)
-        presetSelector.addItem (presetManager.getFactoryPresetName (i), i + 1);
 
-    presetSelector.setSelectedItemIndex (presetManager.getCurrentPresetIndex(),
-                                          juce::dontSendNotification);
+    auto categories = presetManager.getCategoryNames();
+
+    for (auto& category : categories)
+    {
+        auto* menu = presetSelector.getRootMenu();
+        menu->addSectionHeader (category.toUpperCase());
+
+        auto presetsInCat = presetManager.getPresetsInCategory (category);
+        for (auto presetIdx : presetsInCat)
+        {
+            presetSelector.addItem (presetManager.getFactoryPresetName (presetIdx), presetIdx + 1);
+        }
+    }
+
+    auto currentIdx = presetManager.getCurrentPresetIndex();
+    presetSelector.setSelectedId (currentIdx + 1, juce::dontSendNotification);
 }
 
 void TR88EQEditor::updatePowerState()

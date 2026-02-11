@@ -14,9 +14,10 @@ namespace TR88Colours
     const juce::Colour gold          { 0xFFFFB000 };
     const juce::Colour green         { 0xFF5FFF9F };
     const juce::Colour white         { 0xFFFFFFFF };
-    const juce::Colour band1         { 0xFFFF5F5F };
-    const juce::Colour band2         { 0xFFA38CF4 };
-    const juce::Colour band3         { 0xFF6784A3 };
+    const juce::Colour band1         { 0xFFFF5F5F };  // Red
+    const juce::Colour band2         { 0xFFFFB000 };  // Amber
+    const juce::Colour band3         { 0xFFA38CF4 };  // Purple
+    const juce::Colour band4         { 0xFF6784A3 };  // Steel blue
     const juce::Colour master        { 0xFF5FFF9F };
 
     inline juce::Colour getBandColour (int bandIndex)
@@ -26,6 +27,7 @@ namespace TR88Colours
             case 0: return band1;
             case 1: return band2;
             case 2: return band3;
+            case 3: return band4;
             default: return master;
         }
     }

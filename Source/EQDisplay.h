@@ -30,7 +30,7 @@ private:
 
     TR88EQProcessor& processorRef;
 
-    int selectedBand = 1;   // 0-2 for EQ bands, -1 for none
+    int selectedBand = 1;   // 0-3 for EQ bands, -1 for none
     int hoveredBand = -1;
     bool isDragging = false;
 
