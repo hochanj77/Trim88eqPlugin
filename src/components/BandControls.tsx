@@ -82,6 +82,19 @@ export const BandControls: React.FC<BandControlsProps> = ({
   const isMaster = band.type === 'master';
   const isBrickwall = band.type === 'brickwalllow' || band.type === 'brickwallhigh';
 
+  const getBandName = (band: Band) => {
+    if (band.type === 'master') return 'MASTER';
+    
+    // Fixed names based on the 4-node configuration slots
+    switch (band.id) {
+      case 1: return 'LOW_CUT';
+      case 2: return 'LOW_MID';
+      case 3: return 'HIGH_MID';
+      case 4: return 'HIGH_CUT';
+      default: return band.type.toUpperCase();
+    }
+  };
+
   return (
     <div className="flex flex-col gap-10">
       {/* Top Header Section */}
@@ -105,8 +118,8 @@ export const BandControls: React.FC<BandControlsProps> = ({
               </span>
               <div className="w-10 h-[1px] bg-[#6784A3]/20" />
             </div>
-            <span className="text-sm text-white font-mono font-bold tracking-tight">
-              {isMaster ? 'OASIS_MASTER_OUT // OUTPUT_PROC' : `OASIS_NODE_${band.id.toString().padStart(2, '0')} // TYPE_${band.type.toUpperCase()}`}
+            <span className="text-sm text-white font-mono font-black tracking-[0.1em]">
+              {getBandName(band)}
             </span>
           </div>
         </div>
