@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { EQDisplay } from './components/EQDisplay';
 import { BandControls } from './components/BandControls';
-import { Logo } from './components/Logo';
 import { PresetSelector } from './components/PresetSelector';
 import { Power, Maximize2, Settings2, Activity, Cpu, ShieldCheck } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'motion/react';
 
-export type BandType = 'lowcut' | 'lowshelf' | 'peaking' | 'highshelf' | 'highcut' | 'brickwalllow' | 'brickwallhigh' | 'master';
+export type BandType = 'lowcut' | 'lowshelf' | 'peaking' | 'highshelf' | 'highcut' | 'brickwalllow' | 'brickwallhigh';
 
 export interface Band {
   id: number;
@@ -23,7 +22,6 @@ const INITIAL_BANDS: Band[] = [
   { id: 2, type: 'peaking', frequency: 500, gain: 0, q: 1.0, enabled: true, color: '#FFB000' },
   { id: 3, type: 'peaking', frequency: 2500, gain: 0, q: 1.0, enabled: true, color: '#A38CF4' },
   { id: 4, type: 'highcut', frequency: 12000, gain: 0, q: 0.7, enabled: true, color: '#6784A3' },
-  { id: 5, type: 'master', frequency: 100, gain: 0, q: 0, enabled: true, color: '#5FFF9F' },
 ];
 
 export default function App() {
@@ -44,23 +42,15 @@ export default function App() {
       <div className="relative w-full max-w-6xl bg-[#0D1117] border-[3px] border-[#1A2026] rounded-xl shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden">
         
         {/* Modern Industrial Header */}
-        <div className="grid grid-cols-3 items-center px-8 py-6 border-b border-[#1A2026] bg-gradient-to-b from-[#14181E] to-[#0D1117] relative">
+        <div className="flex items-center justify-center px-8 py-6 border-b border-[#1A2026] bg-gradient-to-b from-[#14181E] to-[#0D1117] relative">
           {/* Subtle metal texture overlay */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-          
-          <div className="flex items-center gap-8 relative z-10 justify-start">
-            <Logo />
-          </div>
 
-          <div className="flex items-center justify-center relative z-10">
-            <PresetSelector 
-              onSelect={(newBands) => setBands(newBands)} 
-              currentBands={bands} 
+          <div className="relative z-10">
+            <PresetSelector
+              onSelect={(newBands) => setBands(newBands)}
+              currentBands={bands}
             />
-          </div>
-
-          <div className="relative z-10 justify-self-end">
-            {/* Right spacer for centering */}
           </div>
         </div>
 
@@ -114,7 +104,7 @@ export default function App() {
               {/* Horizontal Node Tabs */}
               <div className="flex border-b border-[#1A2026] bg-[#0D1117]/50">
                 {bands.map((band, idx) => {
-                  const labels = ['LOW_CUT', 'LOW_MID', 'HIGH_MID', 'HIGH_CUT', 'MASTER'];
+                  const labels = ['LOW_CUT', 'LOW_MID', 'HIGH_MID', 'HIGH_CUT'];
                   const isActive = selectedBandId === band.id;
                   return (
                     <button

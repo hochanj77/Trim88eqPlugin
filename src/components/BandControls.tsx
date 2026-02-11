@@ -61,13 +61,9 @@ export const BandControls: React.FC<BandControlsProps> = ({
   band, 
   onUpdate 
 }) => {
-  const isMaster = band.type === 'master';
   const isBrickwall = band.type === 'brickwalllow' || band.type === 'brickwallhigh';
 
   const getBandName = (band: Band) => {
-    if (band.type === 'master') return 'MASTER';
-    
-    // Fixed names based on the 4-node configuration slots
     switch (band.id) {
       case 1: return 'LOW_CUT';
       case 2: return 'LOW_MID';
@@ -90,13 +86,13 @@ export const BandControls: React.FC<BandControlsProps> = ({
               backgroundColor: `${band.color}11` 
             }}
           >
-            {isMaster ? 'M' : band.id}
+            {band.id}
             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#6784A3]">
-                {isMaster ? 'Final Stage' : 'Processor Node'}
+                Processor Node
               </span>
               <div className="w-10 h-[1px] bg-[#6784A3]/20" />
             </div>
@@ -107,26 +103,24 @@ export const BandControls: React.FC<BandControlsProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          {!isMaster && (
-            <div className="flex bg-[#1A2026]/50 p-1.5 rounded-xl border border-[#2A3036] shadow-inner gap-1">
-              {BAND_TYPES.map((bt) => (
-                <button
-                  key={bt.type}
-                  onClick={() => onUpdate({ type: bt.type })}
-                  className={`flex flex-col items-center justify-center w-14 h-12 rounded-lg transition-all duration-200 ${
-                    band.type === bt.type 
-                      ? "bg-[#6784A3] text-white shadow-lg shadow-[#6784A3]/20" 
-                      : "text-[#6784A3]/40 hover:text-[#6784A3]/80 hover:bg-[#1A2026]"
-                  }`}
-                >
-                  <div className={`mb-1 transition-transform duration-200 ${band.type === bt.type ? 'scale-110' : 'scale-90 opacity-60'}`}>
-                    {bt.icon}
-                  </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest leading-none">{bt.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="flex bg-[#1A2026]/50 p-1.5 rounded-xl border border-[#2A3036] shadow-inner gap-1">
+            {BAND_TYPES.map((bt) => (
+              <button
+                key={bt.type}
+                onClick={() => onUpdate({ type: bt.type })}
+                className={`flex flex-col items-center justify-center w-14 h-12 rounded-lg transition-all duration-200 ${
+                  band.type === bt.type
+                    ? "bg-[#6784A3] text-white shadow-lg shadow-[#6784A3]/20"
+                    : "text-[#6784A3]/40 hover:text-[#6784A3]/80 hover:bg-[#1A2026]"
+                }`}
+              >
+                <div className={`mb-1 transition-transform duration-200 ${band.type === bt.type ? 'scale-110' : 'scale-90 opacity-60'}`}>
+                  {bt.icon}
+                </div>
+                <span className="text-[7px] font-black uppercase tracking-widest leading-none">{bt.label}</span>
+              </button>
+            ))}
+          </div>
 
           <div className="w-[1px] h-10 bg-[#1A2026]" />
 
@@ -146,73 +140,39 @@ export const BandControls: React.FC<BandControlsProps> = ({
 
       {/* Main Control Knobs Section */}
       <div className="flex items-center justify-center gap-16 px-10">
-        {!isMaster ? (
-          <div className="flex items-center gap-24">
-            <ControlKnob 
-              label="Frequency" 
-              value={band.frequency} 
-              min={20} 
-              max={20000} 
-              unit="Hz" 
-              color={band.color}
-              onChange={(v) => onUpdate({ frequency: v })}
-            />
-            
-            <ControlKnob 
-              label="Gain" 
-              value={band.gain} 
-              min={-18} 
-              max={18} 
-              unit="dB" 
-              color={band.color}
-              onChange={(v) => onUpdate({ gain: v })}
-              disabled={isBrickwall}
-            />
+        <div className="flex items-center gap-24">
+          <ControlKnob
+            label="Frequency"
+            value={band.frequency}
+            min={20}
+            max={20000}
+            unit="Hz"
+            color={band.color}
+            onChange={(v) => onUpdate({ frequency: v })}
+          />
 
-            <ControlKnob 
-              label="Bandwidth" 
-              value={band.q} 
-              min={0.1} 
-              max={10} 
-              unit="" 
-              color={band.color}
-              onChange={(v) => onUpdate({ q: v })}
-              disabled={isBrickwall}
-            />
-          </div>
-        ) : (
-          <div className="flex items-center gap-24">
-            <ControlKnob 
-              label="Stereo Width" 
-              value={band.frequency} 
-              min={0} 
-              max={200} 
-              unit="%" 
-              color={band.color}
-              onChange={(v) => onUpdate({ frequency: v })}
-            />
-            
-            <ControlKnob 
-              label="Master Gain" 
-              value={band.gain} 
-              min={-18} 
-              max={18} 
-              unit="dB" 
-              color={band.color}
-              onChange={(v) => onUpdate({ gain: v })}
-            />
+          <ControlKnob
+            label="Gain"
+            value={band.gain}
+            min={-18}
+            max={18}
+            unit="dB"
+            color={band.color}
+            onChange={(v) => onUpdate({ gain: v })}
+            disabled={isBrickwall}
+          />
 
-            <ControlKnob 
-              label="Phase Offset" 
-              value={band.q} 
-              min={0} 
-              max={180} 
-              unit="°" 
-              color={band.color}
-              onChange={(v) => onUpdate({ q: v })}
-            />
-          </div>
-        )}
+          <ControlKnob
+            label="Bandwidth"
+            value={band.q}
+            min={0.1}
+            max={10}
+            unit=""
+            color={band.color}
+            onChange={(v) => onUpdate({ q: v })}
+            disabled={isBrickwall}
+          />
+        </div>
       </div>
     </div>
   );

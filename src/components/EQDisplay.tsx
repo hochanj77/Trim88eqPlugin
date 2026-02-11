@@ -80,7 +80,6 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       case 'brickwallhigh': {
         return freq < f0 ? -200 : 0;
       }
-      case 'master': return 0;
       default: return 0;
     }
   };
@@ -151,7 +150,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
 
     // Individual Band Fills & Strokes
     currentBands.forEach(b => {
-      if (!b.enabled || b.type === 'master') return;
+      if (!b.enabled) return;
       const isSelected = b.id === currentSelectedId;
       
       // Fill
@@ -204,7 +203,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
 
     // Nodes
     currentBands.forEach(b => {
-      if (!b.enabled || b.type === 'master') return;
+      if (!b.enabled) return;
       const x = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const y = isFixedGain ? midY : midY - (b.gain / DB_MAX) * (height / 2);
@@ -255,7 +254,6 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
     const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
     for (const b of bands) {
-      if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
@@ -283,7 +281,6 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     }
     let found = null;
     for (const b of bands) {
-      if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
@@ -296,7 +293,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     if (!hoveredBandId) return;
     e.preventDefault();
     const band = bands.find(b => b.id === hoveredBandId);
-    if (!band || band.type === 'master') return;
+    if (!band) return;
     
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const newQ = Math.max(0.1, Math.min(10, band.q + delta));
