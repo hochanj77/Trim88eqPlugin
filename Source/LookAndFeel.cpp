@@ -182,7 +182,7 @@ void TR88LookAndFeel::drawPopupMenuItem (juce::Graphics& g, const juce::Rectangl
 
     if (isTicked)
     {
-        auto dotArea = area.removeFromRight (20).toFloat();
+        auto dotArea = area.withTrimmedLeft (area.getWidth() - 20).toFloat();
         g.setColour (TR88Colours::gold);
         g.fillEllipse (dotArea.getCentreX() - 3.0f, dotArea.getCentreY() - 3.0f, 6.0f, 6.0f);
     }
