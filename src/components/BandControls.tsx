@@ -19,17 +19,8 @@ const BAND_TYPES: { type: BandType; label: string; icon: React.ReactNode }[] = [
       </svg>
     ) 
   },
-  { 
-    type: 'lowshelf', 
-    label: 'LS', 
-    icon: (
-      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 10C6 10 8 10 10 7C12 4 14 4 22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ) 
-  },
-  { 
-    type: 'peaking', 
+  {
+    type: 'peaking',
     label: 'PK', 
     icon: (
       <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -37,16 +28,7 @@ const BAND_TYPES: { type: BandType; label: string; icon: React.ReactNode }[] = [
       </svg>
     ) 
   },
-  { 
-    type: 'highshelf', 
-    label: 'HS', 
-    icon: (
-      <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 4C10 4 12 4 14 7C16 10 18 10 22 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ) 
-  },
-  { 
+  {
     type: 'highcut', 
     label: 'HC', 
     icon: (

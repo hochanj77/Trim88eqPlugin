@@ -253,7 +253,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({ onSelect, curren
                       onClick={() => toggleCategory(category.id)}
                       className="w-full flex items-center justify-between px-4 py-2.5 bg-[#0D1117]/80 border-b border-[#1A2026]/50 hover:bg-[#1A2026]/40 transition-colors"
                     >
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FFB000]/70">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FFB000]">
                         {category.label}
                       </span>
                       <ChevronRight
