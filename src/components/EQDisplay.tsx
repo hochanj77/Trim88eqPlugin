@@ -6,18 +6,16 @@ interface EQDisplayProps {
   selectedBandId: number;
   onSelectBand: (id: number) => void;
   onUpdateBand: (id: number, updates: Partial<Band>) => void;
-  isPowerOn: boolean;
 }
 
-const FREQ_POINTS = 300; 
+const FREQ_POINTS = 300;
 const DB_MAX = 18;
 
-export const EQDisplay: React.FC<EQDisplayProps> = ({ 
-  bands, 
-  selectedBandId, 
-  onSelectBand, 
-  onUpdateBand,
-  isPowerOn 
+export const EQDisplay: React.FC<EQDisplayProps> = ({
+  bands,
+  selectedBandId,
+  onSelectBand,
+  onUpdateBand
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -25,14 +23,12 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
 
   const bandsRef = useRef(bands);
   const selectedBandIdRef = useRef(selectedBandId);
-  const isPowerOnRef = useRef(isPowerOn);
   const hoveredBandIdRef = useRef(hoveredBandId);
 
   useEffect(() => {
     bandsRef.current = bands;
     selectedBandIdRef.current = selectedBandId;
-    isPowerOnRef.current = isPowerOn;
-  }, [bands, selectedBandId, isPowerOn]);
+  }, [bands, selectedBandId]);
 
   useEffect(() => {
     hoveredBandIdRef.current = hoveredBandId;
@@ -53,7 +49,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     const f0 = band.frequency;
     const gain = band.gain;
     const q = band.q;
-    
+
     switch (band.type) {
       case 'peaking': {
         const dist = Math.abs(Math.log10(freq / f0));
@@ -80,6 +76,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       case 'brickwallhigh': {
         return freq < f0 ? -200 : 0;
       }
+      case 'master': return 0;
       default: return 0;
     }
   };
@@ -96,8 +93,13 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
 
     const currentBands = bandsRef.current;
     const currentSelectedId = selectedBandIdRef.current;
-    const currentIsPowerOn = isPowerOnRef.current;
     const currentHoveredId = hoveredBandIdRef.current;
+
+    // Get master band for Tilt/Gain/Mix
+    const masterBand = currentBands.find(b => b.type === 'master');
+    const masterTilt = masterBand ? masterBand.frequency : 0;   // -6 to +6
+    const masterGain = masterBand ? masterBand.gain : 0;        // -18 to +18
+    const masterMix = masterBand ? masterBand.q / 100 : 1;      // 0 to 1
 
     ctx.clearRect(0, 0, width, height);
 
@@ -134,8 +136,6 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       ctx.globalAlpha = 1;
     });
 
-    if (!currentIsPowerOn) return;
-
     // Analyzer
     ctx.beginPath();
     const time = Date.now() / 2000;
@@ -148,11 +148,11 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       ctx.fillRect(i, height - val - 20, 4, val);
     }
 
-    // Individual Band Fills & Strokes
+    // Individual Band Fills & Strokes (skip master)
     currentBands.forEach(b => {
-      if (!b.enabled) return;
+      if (!b.enabled || b.type === 'master') return;
       const isSelected = b.id === currentSelectedId;
-      
+
       // Fill
       ctx.beginPath();
       frequencies.forEach((f, i) => {
@@ -183,16 +183,28 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
       ctx.globalAlpha = 1;
     });
 
-    // Main Curve
+    // Main Combined Curve — applies master Tilt, Gain, and Mix
     ctx.beginPath();
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 3;
     ctx.lineJoin = 'round';
     ctx.shadowBlur = 10;
     ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+    // Tilt normalization: at 20Hz tilt is -tiltAmount, at 20kHz tilt is +tiltAmount, centered at ~1kHz
+    const logRange = Math.log10(20000 / 20);
+    const logCenter = Math.log10(1000 / 20);
     frequencies.forEach((f, i) => {
       let totalGain = 0;
-      currentBands.forEach(b => { totalGain += getResponse(f, b); });
+      currentBands.forEach(b => {
+        if (b.type !== 'master') totalGain += getResponse(f, b);
+      });
+      // Apply Mix: scale EQ effect
+      totalGain *= masterMix;
+      // Apply Tilt: linear tilt across log frequency, centered at 1kHz
+      const logPos = Math.log10(f / 20);
+      totalGain += masterTilt * ((logPos - logCenter) / (logRange / 2));
+      // Apply Master Gain: overall offset
+      totalGain += masterGain;
       const x = (i / (FREQ_POINTS - 1)) * width;
       const y = midY - (totalGain / DB_MAX) * (height / 2);
       if (i === 0) ctx.moveTo(x, y);
@@ -201,9 +213,9 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Nodes
+    // Nodes (skip master)
     currentBands.forEach(b => {
-      if (!b.enabled) return;
+      if (!b.enabled || b.type === 'master') return;
       const x = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const y = isFixedGain ? midY : midY - (b.gain / DB_MAX) * (height / 2);
@@ -254,6 +266,7 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
     const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
     for (const b of bands) {
+      if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
@@ -273,14 +286,16 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
     if (isDragging) {
       const b = bands.find(b => b.id === selectedBandId);
+      if (b?.type === 'master') return;
       const isFixedGain = b?.type === 'lowcut' || b?.type === 'highcut' || b?.type === 'brickwalllow' || b?.type === 'brickwallhigh';
-      
+
       const freq = Math.max(20, Math.min(20000, 20 * Math.pow(20000 / 20, x / canvas.width)));
       const gain = isFixedGain ? 0 : Math.max(-18, Math.min(18, ((canvas.height / 2 - y) / (canvas.height / 2)) * DB_MAX));
       onUpdateBand(selectedBandId, { frequency: freq, gain });
     }
     let found = null;
     for (const b of bands) {
+      if (b.type === 'master') continue;
       const bx = (Math.log10(b.frequency / 20) / Math.log10(20000 / 20)) * canvas.width;
       const isFixedGain = b.type === 'lowcut' || b.type === 'highcut' || b.type === 'brickwalllow' || b.type === 'brickwallhigh';
       const by = isFixedGain ? (canvas.height / 2) : (canvas.height / 2) - (b.gain / DB_MAX) * (canvas.height / 2);
@@ -293,8 +308,8 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
     if (!hoveredBandId) return;
     e.preventDefault();
     const band = bands.find(b => b.id === hoveredBandId);
-    if (!band) return;
-    
+    if (!band || band.type === 'master') return;
+
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const newQ = Math.max(0.1, Math.min(10, band.q + delta));
     onUpdateBand(hoveredBandId, { q: newQ });
@@ -324,13 +339,13 @@ export const EQDisplay: React.FC<EQDisplayProps> = ({
         onWheel={handleWheel}
         className={`w-full h-full cursor-${hoveredBandId ? 'pointer' : isDragging ? 'grabbing' : 'crosshair'}`}
       />
-      
+
       {/* Precision Node HUD Tooltip */}
       {(isDragging || hoveredBandId) && (
-        <div 
+        <div
           className="absolute pointer-events-none z-50 px-3 py-1.5 bg-[#FFB000] text-black font-black text-[10px] rounded shadow-xl flex flex-col items-center"
-          style={{ 
-            left: `${mousePos.x}px`, 
+          style={{
+            left: `${mousePos.x}px`,
             top: `${mousePos.y - 45}px`,
             transform: 'translateX(-50%)'
           }}

@@ -5,7 +5,7 @@ import { PresetSelector } from './components/PresetSelector';
 import { Power, Maximize2, Settings2, Activity, Cpu, ShieldCheck } from 'lucide-react';
 import { motion as Motion, AnimatePresence } from 'motion/react';
 
-export type BandType = 'lowcut' | 'lowshelf' | 'peaking' | 'highshelf' | 'highcut' | 'brickwalllow' | 'brickwallhigh';
+export type BandType = 'lowcut' | 'lowshelf' | 'peaking' | 'highshelf' | 'highcut' | 'brickwalllow' | 'brickwallhigh' | 'master';
 
 export interface Band {
   id: number;
@@ -17,11 +17,13 @@ export interface Band {
   color: string;
 }
 
+// Master band stores: frequency=tilt(-6 to +6), gain=masterGain(-18 to +18), q=mix(0 to 100)
 const INITIAL_BANDS: Band[] = [
   { id: 1, type: 'lowcut', frequency: 100, gain: 0, q: 0.7, enabled: true, color: '#FF5F5F' },
   { id: 2, type: 'peaking', frequency: 500, gain: 0, q: 1.0, enabled: true, color: '#FFB000' },
   { id: 3, type: 'peaking', frequency: 2500, gain: 0, q: 1.0, enabled: true, color: '#A38CF4' },
   { id: 4, type: 'highcut', frequency: 12000, gain: 0, q: 0.7, enabled: true, color: '#6784A3' },
+  { id: 5, type: 'master', frequency: 0, gain: 0, q: 100, enabled: true, color: '#5FFF9F' },
 ];
 
 export default function App() {
@@ -39,7 +41,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#050608] flex items-center justify-center p-4 selection:bg-[#FFB000]/30">
       {/* Main Rack Chassis */}
-      <div className="relative w-full max-w-6xl bg-[#0D1117] border-[3px] border-[#1A2026] rounded-xl shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden">
+      <div className="relative w-full max-w-6xl bg-[#0D1117] border-[3px] border-[#1A2026] rounded-xl shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
         
         {/* Modern Industrial Header */}
         <div className="flex items-center justify-center px-8 py-6 border-b border-[#1A2026] bg-gradient-to-b from-[#14181E] to-[#0D1117] relative">
@@ -62,12 +64,11 @@ export default function App() {
               {/* High-res Grid Lines Overlay */}
               <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#6784A3 1px, transparent 1px), linear-gradient(90deg, #6784A3 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
               
-              <EQDisplay 
-                bands={bands} 
+              <EQDisplay
+                bands={bands}
                 selectedBandId={selectedBandId}
                 onSelectBand={setSelectedBandId}
                 onUpdateBand={updateBand}
-                isPowerOn={true}
               />
               
               {/* OLED Burn-in Simulation & Static UI */}
@@ -104,7 +105,7 @@ export default function App() {
               {/* Horizontal Node Tabs */}
               <div className="flex border-b border-[#1A2026] bg-[#0D1117]/50">
                 {bands.map((band, idx) => {
-                  const labels = ['LOW_CUT', 'LOW_MID', 'HIGH_MID', 'HIGH_CUT'];
+                  const labels = ['LOW_CUT', 'LOW_MID', 'HIGH_MID', 'HIGH_CUT', 'MASTER'];
                   const isActive = selectedBandId === band.id;
                   return (
                     <button
