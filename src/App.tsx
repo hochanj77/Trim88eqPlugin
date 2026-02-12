@@ -18,11 +18,12 @@ export interface Band {
 }
 
 // Master band stores: frequency=tilt(-6 to +6), gain=masterGain(-18 to +18), q=mix(0 to 100)
+// Initial bands match the "Flat / Bypass" preset exactly
 const INITIAL_BANDS: Band[] = [
-  { id: 1, type: 'lowcut', frequency: 100, gain: 0, q: 0.7, enabled: true, color: '#FF5F5F' },
+  { id: 1, type: 'lowcut', frequency: 20, gain: 0, q: 0.7, enabled: true, color: '#FF5F5F' },
   { id: 2, type: 'peaking', frequency: 500, gain: 0, q: 1.0, enabled: true, color: '#FFB000' },
-  { id: 3, type: 'peaking', frequency: 2500, gain: 0, q: 1.0, enabled: true, color: '#A38CF4' },
-  { id: 4, type: 'highcut', frequency: 12000, gain: 0, q: 0.7, enabled: true, color: '#6784A3' },
+  { id: 3, type: 'peaking', frequency: 3000, gain: 0, q: 1.0, enabled: true, color: '#A38CF4' },
+  { id: 4, type: 'highshelf', frequency: 10000, gain: 0, q: 0.7, enabled: true, color: '#6784A3' },
   { id: 5, type: 'master', frequency: 0, gain: 0, q: 100, enabled: true, color: '#5FFF9F' },
 ];
 
